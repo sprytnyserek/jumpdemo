@@ -1,0 +1,4 @@
+MODULES = 
+	$(MODULE main.main)
+	$(MODULE main.structure)
+	$(MODULE main.mccartinsol)
