@@ -14,7 +14,6 @@ class Poset {
 	uint[][] inlist;
 	uint[][] outlist;
 	uint n;
-	
 	uint[] result;
 	
 	void accessibleFrom(uint node) {
@@ -28,8 +27,11 @@ class Poset {
 	
 	void maxAccessibleFrom(uint node) {
 		bool isMaxAccessible = true;
-		foreach (i; this.outlist[node]) {
-			if (this.inlist[i].length > 1) continue;
+		
+		foreach (uint i; this.outlist[node]) {
+			if (this.inlist[i].length > 1) {
+				continue;
+			}
 			else {
 				isMaxAccessible = false;
 				this.maxAccessibleFrom(i);
@@ -49,10 +51,7 @@ class Poset {
 	}
 	
 	this(uint[][] inlist, uint[][] outlist) {
-		if ((inlist.length == 0) || (inlist.length != inlist.length)) throw new Exception("inlist-outlist length mismatch");
-		this.inlist[] = inlist[];
-		this.outlist[] = outlist[];
-		n = inlist.length;
+		this.setInOutList(inlist,outlist);
 	}
 	
 	~this() {
@@ -72,18 +71,31 @@ class Poset {
 		return this.n;
 	}
 	
+/* *******************************************************************************************
+@#*$(#((#*(*(@*(*#(@**(@#*(*#(@*#*@(#*(@*#(*@(#*(@*#(*@#*(@*#(*#()@*#(@*(#*@(#*(@*(#*@(*#(@*#(
+#@(*@#*(*#(@*#()*@(#*(@*#(*(@*#(@*#&@*&#&@^&%&^$@*&$(@*#@%$^@%^$%%$^*(@&$(*@$)*_)*(^$@%$&@^*$&
+@#&^&@^&#^@(&#^*&@#*(&@#)&@(#*(*@#)_@*#)_*@(#)_*(#)_(@)_(#)_@(*#)_*@)_*#)_@*#*@(*#*@#*@*)#*#*0
+%@^&%#^!%@*(!&(#*(!&#^!&#^!*&#(!(#*_!*#(@&*#%@$#%@^&%#&@$()_($)@*^#&@^@$!*)%&$!*%&$^!^)$&!*&!%
+&%$*^&^$%*(&^%$@#*(%^@#&*^&*^%$##%^*&^%$#@$%^&^*%$#@#$%^&^%$#@$%^&^%$#$^^&%$#@&&*^%$##^*&%$#&^
+*********************************************************************************************/
+	/* !!!DODAĆ WERYFIKACJĘ !!! */
 	void setInOutList(uint[][] inlist,uint[][] outlist) {
 		if ((inlist.length == 0) || (inlist.length != inlist.length)) throw new Exception("inlist-outlist length mismatch");
 		this.inlist.length = 0;
 		this.outlist.length = 0;
 		this.inlist = inlist[];
 		this.outlist = outlist[];
+		for (uint i = 0; i < inlist.length; i++) {
+			inlist[i] = unique(inlist[i]);
+			outlist[i] = unique(outlist[i]);
+		}
 		n = inlist.length;
 	}
 	
 	uint[] accessible() { // returns num array
 		uint[] min;
 		this.result.length = 0;
+		
 		for (uint i = 0; i < n; i++) if (this.inlist[i].length == 0) {
 			min.length = min.length + 1;
 			min[length - 1] = i;
@@ -95,6 +107,7 @@ class Poset {
 	uint[] maxAccessible() { // returns num array
 		uint[] min;
 		this.result.length = 0;
+		
 		for (uint i = 0; i < n; i++) if (this.inlist[i].length == 0) {
 			min.length = min.length + 1;
 			min[length - 1] = i;
@@ -104,6 +117,33 @@ class Poset {
 	}
 	
 }
+
+
+/**
+ * Sprawdzenie, czy tablica $(I a) zawiera element $(I elmt)
+ */
+private bool contains(uint[] a, uint elmt) {
+	uint i;
+	
+	while (a.length > i) {
+		if (a[i++] == elmt) return true;
+		}
+	return false;
+}
+
+
+/**
+ * Zamiana danej tablicy na tablicę bez powtórzeń
+ */
+private uint[] unique(uint[] a) {
+	uint[] result;
+	
+	foreach (uint i; a) {
+		if (!(contains(result,i))) result ~= [i];
+	}
+	return result;
+}
+
 
 unittest {
 	Poset P = new Poset();
