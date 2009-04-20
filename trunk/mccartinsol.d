@@ -7,19 +7,24 @@
  */
 module mccartinsol;
 
+
 private {
 	import std.math;
 	import std.stdio;
-	
 	/* internal imports */
 	import structure;
 }
 
+
+/**
+ * Szybki wybór fragmentów łańcuchów posetu - kandydatów do łańcucha szczytowego
+ */
 private uint[][] fastChoice(Poset P) {
 	uint[][] inlist = P.getInlist();
 	uint[][] outlist = P.getOutlist();
 	uint[] maxAccess = P.maxAccessible();
 	uint[][] result;
+	
 	foreach (uint i; maxAccess) {
 		uint j = i;
 		uint[] chain;
@@ -44,37 +49,78 @@ private uint[][] fastChoice(Poset P) {
 	return result;
 }
 
+/**
+ * Sprawdzenie, czy tablica $(I a) zawiera element $(I elmt)
+ */
 private bool contains(uint[] a, uint elmt) {
 	uint i;
+	
 	while (a.length > i) {
 		if (a[i++] == elmt) return true;
 		}
 	return false;
 }
 
+
+/**
+ * Sprawdzenie, czy tablica $(I a) zawiera element $(I elmt)
+ */
+private bool contains(bool[] a, bool elmt) {
+	uint i;
+	
+	while (a.length > i) {
+		if (a[i++] == elmt) return true;
+		}
+	return false;
+}
+
+
+/**
+ * Zamiana danej tablicy na tablicę bez powtórzeń
+ */
 private uint[] unique(uint[] a) {
 	uint[] result;
+	
 	foreach (uint i; a) {
 		if (!(contains(result,i))) result ~= [i];
 	}
 	return result;
 }
 
+
+/**
+ * Wybór wszystkich elementów posetu większych od danego, z pominięciem dalszych relacji
+ */
 private uint[] buildCeiling(uint[][] inlist, uint[][] outlist, uint elmt) {
 	uint[] result = [elmt];
+	
 	foreach (uint i; outlist[elmt]) {
 		result ~= buildCeiling(inlist, outlist, i);
 	}
 	return unique(result);
 }
 
-private uint[][] topChain(Poset P) {
+
+/**
+ * Wyznaczenie zbioru łańcuchów szczytowych dla danego posetu
+ */
+private uint[][] topChain(Poset P, bool[] gottenElmts = []) {
 	uint[][] possTopChain = fastChoice(P), inlist = P.getInlist(), outlist = P.getOutlist(), result;
 	uint[] maxAccess = P.maxAccessible();
 	uint currentMaxAccess;
+	
+	if (gottenElmts.length == 0) {
+		gottenElmts.length = inlist.length;
+		for (uint i = 0; i < gottenElmts.length; i++) gottenElmts[i] = false;
+	}
 	foreach (uint[] chain; possTopChain) {
 		uint[] currentChain = chain.dup;
 		uint currentElmt = currentMaxAccess = currentChain[length - 1];
+		if (gottenElmts[currentElmt]) continue; // if element is marked as already used
+		if (inlist[currentElmt].length == 0) {
+			result ~= currentChain;
+			continue;
+		}
 		while (inlist[currentElmt].length > 0) {
 			uint newElmt = inlist[currentElmt][0];
 			if (outlist[newElmt].length > 1) {
@@ -99,14 +145,27 @@ private uint[][] topChain(Poset P) {
 				currentChain.length = currentChain.length + 1;
 				currentChain[length - 1] = newElmt;
 				currentElmt = newElmt;
+				if (inlist[currentElmt].length == 0) {
+					result ~= currentChain;
+					}
 			}
 		}
+		/*if (inlist[currentElmt].length == 0) {
+			currentChain.length = currentChain.length + 1;
+			currentChain[length - 1] = currentElmt;
+			result ~= currentChain;
+		}*/
 	}
 	return result;
 }
 
+
+/**
+ * Wyznaczenie numeru elementu tablicy tablic $(I set), który zawiera największą liczbę elementów
+ */
 private uint getLeaderNumber(T)(T[][] set) {
 	uint r = 0, answer = 0;
+	
 	for (uint i = 0; i < set.length; i++) {
 		if (set[i].length > r) {
 			r = set[i].length;
@@ -116,20 +175,54 @@ private uint getLeaderNumber(T)(T[][] set) {
 	return answer;
 }
 
+
+private uint index(uint[] a, uint elmt) {
+	for (uint i = 0; i < a.length; i++) if (a[i] == elmt) return i;
+	return a.length;
+}
+
+
+private void remove(inout uint[] a, uint i) {
+	if (i < a.length) a = a[0 .. i] ~ a[(i + 1) .. $];
+}
+
+
+/**
+ * Rozkład drabinowy danego posetu (o ile istnieje), według algorytmu McCartin
+ */
 uint[][] ladderDecomp(Poset Q) {
 	uint[][] inlist = Q.getInlist(), outlist = Q.getOutlist(), result;
 	Poset P = new Poset();
-	P.setInOutList(inlist,outlist);
 	bool[] gottenElmts;
+	uint n = inlist.length;
+	
 	gottenElmts.length = inlist.length;
-	uint n = gottenElmts.length;
-	for (uint i = 0; i < n; i++) gottenElmts = false; // maybe redundant
+	P.setInOutList(inlist,outlist);
+	for (uint i = 0; i < n; i++) gottenElmts[i] = false; // maybe redundant
 	uint[][] topChains;
 	while (contains(gottenElmts,false)) {
-		topChains = topChain(P);
-		// there're can be no any top chains; if so, first of all let's check whether there are any isolated elements
-		uint leader = getLeaderNumber(uint)(topChains); // we choose a chain with the greatest number of poset elements; instead of this WE CAN CHOOSE A GREEDY one (which is not a part of an N-pattern in Hasse diagram)
-		
+		topChains = topChain(P, gottenElmts);
+		// there're can be no any top chains; if so, ladder decomposition does not exist
+		if (topChains.length == 0) {
+			return [];
+			}
+		/* leader */uint l = getLeaderNumber!(uint)(topChains); // we choose a chain with the greatest number of poset elements; instead of this WE CAN CHOOSE A STRONGLY GREEDY one (which is not a part of an N-pattern in Hasse diagram)
+		result.length = result.length + 1;
+		result[length - 1] = topChains[l].dup;
+		debug writefln(topChains);
+		debug writefln("chosen leader: ",topChains[l]); debug writefln();
+		foreach (uint i; topChains[l]) {
+			foreach (uint j; inlist[i]) remove(outlist[j], index(outlist[j], i));
+			foreach (uint j; outlist[i]) remove(inlist[j], index(inlist[j], i));
+		}
+		foreach (uint i; topChains[l]) {
+			gottenElmts[i] = true;
+			inlist[i].length = 0;
+			outlist[i].length = 0;
+		}
+		P.setInOutList(inlist,outlist);
 	}
+	for (uint i = 0; i < result.length; i++) result[i].reverse;
+	result.reverse;
 	return result;
 }

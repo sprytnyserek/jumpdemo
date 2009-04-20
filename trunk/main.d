@@ -41,6 +41,7 @@ import structure;
 import mccartinsol;
 /* end of internal imports */
 
+import preview;
 
 class MainWindow: dfl.form.Form
 {
@@ -48,10 +49,8 @@ class MainWindow: dfl.form.Form
 	//~Entice Designer variables begin here.
 	dfl.button.Button spawnButton;
 	dfl.button.Button exitButton;
-	dfl.picturebox.PictureBox pictureBox1;
-	dfl.panel.Panel panel1;
 	//~Entice Designer variables end here.
-	
+	Preview panel1;
 	
 	this()
 	{
@@ -77,29 +76,20 @@ class MainWindow: dfl.form.Form
 		spawnButton = new dfl.button.Button();
 		spawnButton.name = "spawnButton";
 		spawnButton.text = "Spawn";
-		spawnButton.bounds = dfl.all.Rect(8, 32, 136, 32);
+		spawnButton.bounds = dfl.all.Rect(24, 40, 136, 31);
 		spawnButton.parent = this;
 		//~DFL dfl.button.Button=exitButton
 		exitButton = new dfl.button.Button();
 		exitButton.name = "exitButton";
 		exitButton.text = "Exit";
-		exitButton.bounds = dfl.all.Rect(8, 88, 136, 32);
+		exitButton.bounds = dfl.all.Rect(24, 96, 136, 31);
 		exitButton.parent = this;
-		//~DFL dfl.picturebox.PictureBox=pictureBox1
-		pictureBox1 = new dfl.picturebox.PictureBox();
-		pictureBox1.name = "pictureBox1";
-		pictureBox1.backColor = dfl.all.Color(255, 255, 255);
-		pictureBox1.bounds = dfl.all.Rect(8, 136, 136, 104);
-		pictureBox1.parent = this;
-		//~DFL dfl.panel.Panel=panel1
-		panel1 = new dfl.panel.Panel();
-		panel1.name = "panel1";
-		panel1.bounds = dfl.all.Rect(232, 16, 240, 232);
-		panel1.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
-		panel1.scrollSize(Size(panel1.right,panel1.bottom));
-		panel1.vScroll(true);
-		panel1.hScroll(true);
+		panel1 = new Preview();
+		panel1.name = "panel2";
+		panel1.bounds = dfl.all.Rect(200, 32, 216, 200);
+		//panel1.dock = dfl.all.DockStyle.FILL;
+		panel1.parent = this;
 	}
 	
 	private void spawnButton_click(Object sender, EventArgs ea) {
@@ -132,15 +122,21 @@ int main()
 		writefln(r);
 */
 		Poset P = new Poset();
-		uint[][] inlist = [[1,7,11,16,21], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
-		uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
+		//uint[][] inlist = [[1,7,11,16,21], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
+		//uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
+		//uint[][] inlist = [[1], cast(uint[])[], [3], cast(uint[])[], cast(uint[])[]];
+		//uint[][] outlist = [cast(uint[])[], [0], cast(uint[])[], [2], cast(uint[])[]];
+		uint[][] inlist = [[1], [2], cast(uint[])[], [4,5], cast(uint[])[], [1]];
+		uint[][] outlist = [cast(uint[])[], [0,5], [1], cast(uint[])[], [3], [3]];
 		P.setInOutList(inlist, outlist);
-		writefln(P.getInlist());
-		writefln(P.getOutlist());
-		uint[] X = P.maxAccessible();
-		for (uint i; i < X.length; i++) X[i] += 1;
-		writefln(X);
-		writefln(topChain(P));
+		writefln(P.getInlist()); writefln();
+		writefln(P.getOutlist()); writefln();
+		//uint[] X = P.maxAccessible();
+		//for (uint i; i < X.length; i++) X[i] += 1;
+		//writefln(X);
+		//writefln(topChain(P));
+		writefln(P.maxAccessible()); writefln();
+		writefln(ladderDecomp(P));
 		//spawnvp(P_WAIT, "C:\\Windows\\notepad.exe", []);
 		Application.run(new MainWindow());
 	}
