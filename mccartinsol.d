@@ -1,4 +1,23 @@
-﻿/**
+﻿/*
+FPT Jump Demo - demonstration of FPT-methods for the jump number problem
+Copyright (C) 2009 Tomasz Polachowski, sprytnyserek@gmail.com
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA,
+or see <http://www.gnu.org/licenses/>.
+*/
+/**
  * Przedstawienie rozwiązania FPT problemu skoków w posecie według McCartin
  *
  * Author: Tomasz Polachowski, $(LINK2 mailto:sprytnyserek@gmail.com,sprytnyserek@gmail.com)
@@ -206,7 +225,9 @@ uint[][] ladderDecomp(Poset Q) {
 		if (topChains.length == 0) {
 			return [];
 			}
+/* **************************vvvvvvvvvvvvvvv*********************************************************************** */
 		/* leader */uint l = getLeaderNumber!(uint)(topChains); // we choose a chain with the greatest number of poset elements; instead of this WE CAN CHOOSE A STRONGLY GREEDY one (which is not a part of an N-pattern in Hasse diagram)
+/* **************************^^^^^^^^^^^^^^^*********************************************************************** */
 		result.length = result.length + 1;
 		result[length - 1] = topChains[l].dup;
 		debug writefln(topChains);
@@ -226,3 +247,18 @@ uint[][] ladderDecomp(Poset Q) {
 	result.reverse;
 	return result;
 }
+
+
+/+uint[] expEvaluate(TreeElmt node) {
+	
+}
+
+
+uint[] linearExtensionbyDecomp(Poset P, uint k = 0) {
+	if (k == 0) k = P.maxAccessible().length - 1;
+	bool[] gottenElmts;
+	gottenElmts.length = P.getCurrency;
+	for (uint i = 0; i < gottenElmts.length; i++) gottenElmts[i] = false;
+	TreeElmt topNode = new TreeElmt(P, []);
+	
+}+/
