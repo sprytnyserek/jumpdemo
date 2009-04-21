@@ -35,6 +35,8 @@ import dfl.all;
 
 import std.stdio;
 import std.process;
+import std.thread;
+import std.string;
 
 /* start of internal imports */
 import structure;
@@ -49,8 +51,23 @@ class MainWindow: dfl.form.Form
 	//~Entice Designer variables begin here.
 	dfl.button.Button spawnButton;
 	dfl.button.Button exitButton;
+	dfl.textbox.TextBox textBox1;
 	//~Entice Designer variables end here.
-	Preview panel1;
+	//Preview panel1;
+	Thread processing;
+	Poset P;
+	char[] filename;
+	
+	private int th() {
+		P = new Poset();
+		P.fromFile(filename);
+		uint[][] result;
+		result = ladderDecomp(P);
+		char[] resultString = "";
+		for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
+		textBox1.text(resultString);
+		return 0;
+	}
 	
 	this()
 	{
@@ -62,6 +79,8 @@ class MainWindow: dfl.form.Form
 		//Graphics g = pictureBox1.createGraphics();
 		//Color c = Color.fromArgb(0,255,0,0);
 		//g.drawLine(new Pen(c), Point(0,0), Point(100,100));
+		processing = new Thread(&(this.th));
+		
 	}
 	
 	
@@ -71,31 +90,40 @@ class MainWindow: dfl.form.Form
 		//~Entice Designer 0.8.5.02 code begins here.
 		//~DFL Form
 		text = "FPT Jump Demo";
-		clientSize = dfl.all.Size(488, 264);
+		clientSize = dfl.all.Size(416, 264);
 		//~DFL dfl.button.Button=spawnButton
 		spawnButton = new dfl.button.Button();
 		spawnButton.name = "spawnButton";
-		spawnButton.text = "Spawn";
+		spawnButton.text = "Otwórz";
 		spawnButton.bounds = dfl.all.Rect(24, 40, 136, 31);
 		spawnButton.parent = this;
 		//~DFL dfl.button.Button=exitButton
-		exitButton = new dfl.button.Button();
+		exitButton = new Button();
 		exitButton.name = "exitButton";
-		exitButton.text = "Exit";
-		exitButton.bounds = dfl.all.Rect(24, 96, 136, 31);
+		exitButton.text = "Zakończ";
+		exitButton.bounds = dfl.all.Rect(256, 40, 136, 32);
 		exitButton.parent = this;
+		//~DFL dfl.textbox.TextBox=textBox1
+		textBox1 = new dfl.textbox.TextBox();
+		textBox1.name = "textBox1";
+		textBox1.bounds = dfl.all.Rect(24, 120, 368, 40);
+		textBox1.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
-		panel1 = new Preview();
+		/+panel1 = new Preview();
 		panel1.name = "panel2";
 		panel1.bounds = dfl.all.Rect(200, 32, 216, 200);
 		//panel1.dock = dfl.all.DockStyle.FILL;
-		panel1.parent = this;
+		panel1.parent = this;+/
+		textBox1.scrollBars(textBox1.scrollBars.HORIZONTAL);
 	}
 	
 	private void spawnButton_click(Object sender, EventArgs ea) {
-		this.text("Waiting for Notepad closing... - FPT Jump Demo");
-		spawnvp(P_WAIT, "C:\\Windows\\notepad.exe", []);
-		this.text("FPT Jump Demo");
+		OpenFileDialog dialog = new OpenFileDialog();
+		dialog.multiselect = false;
+		dialog.showDialog();
+		filename = dialog.fileName();
+		textBox1.text = "Processing...";
+		processing.start();
 	}
 	
 	private void exitButton_click(Object sender, EventArgs ea) {
@@ -126,9 +154,10 @@ int main()
 		//uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
 		//uint[][] inlist = [[1], cast(uint[])[], [3], cast(uint[])[], cast(uint[])[]];
 		//uint[][] outlist = [cast(uint[])[], [0], cast(uint[])[], [2], cast(uint[])[]];
-		uint[][] inlist = [[1], [2], cast(uint[])[], [4,5], cast(uint[])[], [1]];
-		uint[][] outlist = [cast(uint[])[], [0,5], [1], cast(uint[])[], [3], [3]];
-		P.setInOutList(inlist, outlist);
+		//uint[][] inlist = [[1], [2], cast(uint[])[], [5], cast(uint[])[], [1]];
+		//uint[][] outlist = [cast(uint[])[], [0], [1], cast(uint[])[], [3], [3]];
+		//P.setInOutList(inlist, outlist);
+		P.fromFile("ex1.txt");
 		writefln(P.getInlist()); writefln();
 		writefln(P.getOutlist()); writefln();
 		//uint[] X = P.maxAccessible();
@@ -149,4 +178,3 @@ int main()
 	
 	return result;
 }
-
