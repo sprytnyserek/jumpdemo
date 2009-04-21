@@ -79,8 +79,13 @@ class MainWindow: dfl.form.Form
 		//Graphics g = pictureBox1.createGraphics();
 		//Color c = Color.fromArgb(0,255,0,0);
 		//g.drawLine(new Pen(c), Point(0,0), Point(100,100));
-		processing = new Thread(&(this.th));
+		//processing = new Thread(&(this.th));
 		
+	}
+	
+	
+	~this() {
+		if (processing) delete processing;
 	}
 	
 	
@@ -123,6 +128,8 @@ class MainWindow: dfl.form.Form
 		dialog.showDialog();
 		filename = dialog.fileName();
 		textBox1.text = "Processing...";
+		if (processing) delete processing;
+		processing = new Thread(&(this.th));
 		processing.start();
 	}
 	
@@ -149,7 +156,7 @@ int main()
 		r[length - 1] = 2;
 		writefln(r);
 */
-		Poset P = new Poset();
+		//Poset P = new Poset();
 		//uint[][] inlist = [[1,7,11,16,21], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
 		//uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
 		//uint[][] inlist = [[1], cast(uint[])[], [3], cast(uint[])[], cast(uint[])[]];
@@ -157,15 +164,15 @@ int main()
 		//uint[][] inlist = [[1], [2], cast(uint[])[], [5], cast(uint[])[], [1]];
 		//uint[][] outlist = [cast(uint[])[], [0], [1], cast(uint[])[], [3], [3]];
 		//P.setInOutList(inlist, outlist);
-		P.fromFile("ex1.txt");
-		writefln(P.getInlist()); writefln();
-		writefln(P.getOutlist()); writefln();
+		//P.fromFile("ex1.txt");
+		//writefln(P.getInlist()); writefln();
+		//writefln(P.getOutlist()); writefln();
 		//uint[] X = P.maxAccessible();
 		//for (uint i; i < X.length; i++) X[i] += 1;
 		//writefln(X);
 		//writefln(topChain(P));
-		writefln(P.maxAccessible()); writefln();
-		writefln(ladderDecomp(P));
+		//writefln(P.maxAccessible()); writefln();
+		//writefln(ladderDecomp(P));
 		//spawnvp(P_WAIT, "C:\\Windows\\notepad.exe", []);
 		Application.run(new MainWindow());
 	}
@@ -178,3 +185,4 @@ int main()
 	
 	return result;
 }
+/* standard compile command: build -cleanup -nodef -D -unittest -debug main.d candy.ddoc modules.ddoc */
