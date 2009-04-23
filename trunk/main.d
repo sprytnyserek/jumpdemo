@@ -37,6 +37,7 @@ import std.stdio;
 import std.process;
 import std.thread;
 import std.string;
+import std.format;
 
 /* start of internal imports */
 import structure;
@@ -62,10 +63,10 @@ class MainWindow: dfl.form.Form
 		P = new Poset();
 		P.fromFile(filename);
 		uint[][] result;
-		result = ladderDecomp(P);
+		//result = ladderDecomp(P);
 		char[] resultString = "";
-		for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
-		textBox1.text(resultString);
+		//for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
+		//textBox1.text(resultString);
 		return 0;
 	}
 	
@@ -150,39 +151,27 @@ int main()
 		
 		//@  Other application initialization code here.
 		
-/*		
-		uint[] r;
-		r.length = r.length + 1;
-		r[length - 1] = 2;
-		writefln(r);
-*/
-		//Poset P = new Poset();
-		//uint[][] inlist = [[1,7,11,16,21], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
-		//uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
+		Poset P = new Poset();
+		uint[][] inlist = [[1,7,11,16,21], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
+		uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
 		//uint[][] inlist = [[1], cast(uint[])[], [3], cast(uint[])[], cast(uint[])[]];
 		//uint[][] outlist = [cast(uint[])[], [0], cast(uint[])[], [2], cast(uint[])[]];
 		//uint[][] inlist = [[1], [2], cast(uint[])[], [5], cast(uint[])[], [1]];
 		//uint[][] outlist = [cast(uint[])[], [0], [1], cast(uint[])[], [3], [3]];
-		//P.setInOutList(inlist, outlist);
-		//P.fromFile("ex1.txt");
-		//writefln(P.getInlist()); writefln();
-		//writefln(P.getOutlist()); writefln();
-		//uint[] X = P.maxAccessible();
-		//for (uint i; i < X.length; i++) X[i] += 1;
-		//writefln(X);
-		//writefln(topChain(P));
-		//writefln(P.maxAccessible()); writefln();
-		//writefln(ladderDecomp(P));
-		//spawnvp(P_WAIT, "C:\\Windows\\notepad.exe", []);
+		debug {
+			P.setInOutList(inlist, outlist);
+			uint[][] e = linearExtensionbyDecomp(P, 5);
+			writefln("extension:", e);
+		}
 		Application.run(new MainWindow());
 	}
 	catch(Object o)
 	{
 		msgBox(o.toString(), "Fatal Error", MsgBoxButtons.OK, MsgBoxIcon.ERROR);
-		
 		result = 1;
 	}
 	
 	return result;
 }
 /* standard compile command: build -cleanup -nodef -D -unittest -debug main.d candy.ddoc modules.ddoc */
+/*  release compile command: build -cleanup -nodef -D -O -release -L/EXET:NT -L/SU:windows main.d candy.ddoc modules.ddoc */

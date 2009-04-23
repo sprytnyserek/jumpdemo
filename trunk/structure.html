@@ -31,7 +31,314 @@ GNU General Public License 3, <a href="http://www.gnu.org/licenses/gpl.html">htt
 
 
 <script>explorer.outline.incSymbolLevel();</script>
-<dl></dl>
+<dl>
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">class 
+<span class="currsymbol">Poset</span>
+<script>explorer.outline.addDecl('Poset');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Klasa posetu przechowywanego w postaci diagramu Hassego
+ 
+<br><br>
+
+
+<script>explorer.outline.incSymbolLevel();</script>
+<dl>
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">uint[][] 
+<span class="currsymbol">getInlist</span>
+<script>explorer.outline.addDecl('getInlist');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Pobranie listy elementów pokrywanych
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">uint[][] 
+<span class="currsymbol">getOutlist</span>
+<script>explorer.outline.addDecl('getOutlist');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Pobranie listy elementów pokrywających
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">uint 
+<span class="currsymbol">getCurrency</span>
+<script>explorer.outline.addDecl('getCurrency');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Pobranie liczby elementów posetu
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">void 
+<span class="currsymbol">setInOutList</span>
+<script>explorer.outline.addDecl('setInOutList');</script>
+
+(uint[][] <span class="funcparam">inlist</span>, uint[][] <span class="funcparam">outlist</span>);
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Ustawienie list elementów pokrywanych i pokrywających
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">uint[] 
+<span class="currsymbol">accessible</span>
+<script>explorer.outline.addDecl('accessible');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Znajduje elemety osiągalne w posecie
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">uint[] 
+<span class="currsymbol">maxAccessible</span>
+<script>explorer.outline.addDecl('maxAccessible');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Znajduje elementy maksymalnie osiągalne w posecie
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">int 
+<span class="currsymbol">fromFile</span>
+<script>explorer.outline.addDecl('fromFile');</script>
+
+(char[] <span class="funcparam">filename</span>);
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Ładuje definicję posetu z pliku tekstowego w ustalonym formacie
+	 
+<br><br>
+
+</dd>
+</dl>
+<script>explorer.outline.decSymbolLevel();</script>
+
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">class 
+<span class="currsymbol">TreeElmt</span>
+<script>explorer.outline.addDecl('TreeElmt');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Klasa elementu drzewa wyszukiwań wykorzystywanego w algorytmie McCartin
+<br><br>
+Wszystkie elementy publiczne
+ 
+<br><br>
+
+
+<script>explorer.outline.incSymbolLevel();</script>
+<dl>
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">Poset 
+<span class="currsymbol">P</span>
+<script>explorer.outline.addDecl('P');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Poset 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">uint[] 
+<span class="currsymbol">chain</span>
+<script>explorer.outline.addDecl('chain');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Odcięty łańcuch 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">bool[] 
+<span class="currsymbol">gottenElmts</span>
+<script>explorer.outline.addDecl('gottenElmts');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Wyłączone elementy 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">TreeElmt 
+<span class="currsymbol">parent</span>
+<script>explorer.outline.addDecl('parent');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Węzeł nadrzędny 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">TreeElmt[] 
+<span class="currsymbol">children</span>
+<script>explorer.outline.addDecl('children');</script>
+
+;
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Węzły podrzędne 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">this(Poset <span class="funcparam">P</span>, uint[] <span class="funcparam">chain</span>, bool[] <span class="funcparam">gottenElmts</span> = []);
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd><b>Params:</b><br>
+<table><tr>
+<td nowrap valign="top" style="padding-right: 8px">Poset <span class="funcparam">P</span></td>
+
+               
+<td>Poset</td></tr>
+<tr>
+<td nowrap valign="top" style="padding-right: 8px">uint[] <span class="funcparam">chain</span></td>
+
+               
+<td>Odcięty łańcuch</td></tr>
+<tr>
+<td nowrap valign="top" style="padding-right: 8px">bool[] <span class="funcparam">gottenElmts</span></td>
+
+               
+<td>Wyłączone elementy</td></tr>
+</table><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">TreeElmt[] 
+<span class="currsymbol">getChildren</span>
+<script>explorer.outline.addDecl('getChildren');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Pobranie tablicy węzłów podrzędnych
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">TreeElmt 
+<span class="currsymbol">getParent</span>
+<script>explorer.outline.addDecl('getParent');</script>
+
+();
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Pobranie tablicy węzłów nadrzędnych
+	 
+<br><br>
+
+</dd>
+
+<script>explorer.outline.writeEnabled = true;</script>
+<dt><span class="decl">void 
+<span class="currsymbol">addChild</span>
+<script>explorer.outline.addDecl('addChild');</script>
+
+(TreeElmt <span class="funcparam">elmt</span>);
+</span></dt>
+<script>explorer.outline.writeEnabled = false;</script>
+
+
+<dd>Dodanie węzła podrzędnego
+	 
+<br><br>
+
+</dd>
+</dl>
+<script>explorer.outline.decSymbolLevel();</script>
+
+
+</dd>
+</dl>
 <script>explorer.outline.decSymbolLevel();</script>
 
 
@@ -39,7 +346,7 @@ GNU General Public License 3, <a href="http://www.gnu.org/licenses/gpl.html">htt
 		<tr><td id="docfooter">
 			Page was generated with
 			<img src="candydoc/img/candydoc.gif" style="vertical-align:middle; position:relative; top:-1px">
-			on Tue Apr 21 21:56:07 2009
+			on Thu Apr 23 22:11:09 2009
 
 		</td></tr>
 	</table>
