@@ -33,8 +33,12 @@ private {
 	import std.string;
 	import std.stream;
 	import std.conv;
-}
+} // end of imports
 
+
+/**
+ * Klasa posetu przechowywanego w postaci diagramu Hassego
+ */
 class Poset {
 	private:
 	uint[][] inlist;
@@ -70,6 +74,9 @@ class Poset {
 	}
 	
 	
+	/**
+	 * Sprawdzenie symetrii połączeń między elementami posetu
+	 */
 	private bool isConsistent() {
 		for (uint i = 0; i < inlist.length; i++) {
 			foreach (uint j; inlist[i]) if (!contains(outlist[j],i)) return false;
@@ -79,6 +86,9 @@ class Poset {
 	}
 	
 	
+	/**
+	 * Poprawienie połączeń między elementami posetu (przez rozszerzenie)
+	 */
 	private void correctDef() {
 		for (uint i = 0; i < inlist.length; i++) {
 			foreach (uint j; inlist[i]) {
@@ -106,26 +116,36 @@ class Poset {
 		n = 0;
 	}
 	
-	/*this(uint[][] inlist, uint[][] outlist) {
-		this.setInOutList(inlist,outlist);
-	}*/
 	
 	~this() {
 		inlist.length = 0;
 		outlist.length = 0;
 	}
 	
+	
+	/**
+	 * Pobranie listy elementów pokrywanych
+	 */
 	uint[][] getInlist() {
 		return inlist.dup;
 	}
 	
+	
+	/**
+	 * Pobranie listy elementów pokrywających
+	 */
 	uint[][] getOutlist() {
 		return outlist.dup;
 	}
 	
+	
+	/**
+	 * Pobranie liczby elementów posetu
+	 */
 	uint getCurrency() {
 		return this.n;
 	}
+	
 	
 /* *******************************************************************************************
 @#*$(#((#*(*(@*(*#(@**(@#*(*#(@*#*@(#*(@*#(*@(#*(@*#(*@#*(@*#(*#()@*#(@*(#*@(#*(@*(#*@(*#(@*#(
@@ -135,14 +155,15 @@ class Poset {
 &%$*^&^$%*(&^%$@#*(%^@#&*^&*^%$##%^*&^%$#@$%^&^*%$#@#$%^&^%$#@$%^&^%$#$^^&%$#@&&*^%$##^*&%$#&^
 *********************************************************************************************/
 	/* !!!DODAĆ WERYFIKACJĘ !!! */
+	/**
+	 * Ustawienie list elementów pokrywanych i pokrywających
+	 */
 	void setInOutList(uint[][] inlist,uint[][] outlist) {
 		if ((inlist.length == 0) || (inlist.length != inlist.length)) throw new Exception("inlist-outlist length mismatch");
 		this.inlist.length = 0;
 		this.outlist.length = 0;
 		this.inlist = inlist[];
 		this.outlist = outlist[];
-		//writefln(inlist);
-		//writefln(outlist);
 		for (uint i = 0; i < inlist.length; i++) {
 			inlist[i] = unique(inlist[i]);
 			outlist[i] = unique(outlist[i]);
@@ -151,6 +172,10 @@ class Poset {
 		correctDef();
 	}
 	
+	
+	/**
+	 * Znajduje elemety osiągalne w posecie
+	 */
 	uint[] accessible() { // returns num array
 		uint[] min;
 		this.result.length = 0;
@@ -163,6 +188,10 @@ class Poset {
 		return result;
 	}
 	
+	
+	/**
+	 * Znajduje elementy maksymalnie osiągalne w posecie
+	 */
 	uint[] maxAccessible() { // returns num array
 		uint[] min;
 		this.result.length = 0;
@@ -176,6 +205,9 @@ class Poset {
 	}
 	
 	
+	/**
+	 * Ładuje definicję posetu z pliku tekstowego w ustalonym formacie
+	 */
 	int fromFile(char[] filename) {
 		File file = new File();
 		try {
@@ -226,7 +258,7 @@ class Poset {
 
 
 /**
- * Sprawdzenie, czy tablica $(I a) zawiera element $(I elmt)
+ * Sprawdza, czy tablica $(I a) zawiera element $(I elmt)
  */
 private bool contains(uint[] a, uint elmt) {
 	uint i;
@@ -251,36 +283,66 @@ private uint[] unique(uint[] a) {
 }
 
 
+/**
+ * Klasa elementu drzewa wyszukiwań wykorzystywanego w algorytmie McCartin
+ *
+ * Wszystkie elementy publiczne
+ */
 class TreeElmt {
 	public:
+	/** Poset */
 	Poset P;
+	/** Odcięty łańcuch */
 	uint[] chain;
+	/** Wyłączone elementy */
 	bool[] gottenElmts;
+	/** Węzeł nadrzędny */
 	TreeElmt parent;
+	/** Węzły podrzędne */
 	TreeElmt[] children;
 	
+	
+	/**
+	 * Params:
+	 *       P = Poset
+	 *       chain = Odcięty łańcuch
+	 *       gottenElmts = Wyłączone elementy
+	 */
 	this(Poset P, uint[] chain, bool[] gottenElmts = []) {
 		this.P = P;
 		this.chain = chain;
 		if (gottenElmts.length == 0) {
-			gottenElmts.length = P.getCurrency();
-			for (uint i = 0; i < gottenElmts.length; i++) gottenElmts[i] = false;
+			this.gottenElmts.length = P.getCurrency();
+			for (uint i = 0; i < this.gottenElmts.length; i++) this.gottenElmts[i] = false;
 		}
 		if (gottenElmts.length < P.getCurrency()) {
 			uint j = gottenElmts.length;
-			gottenElmts.length = P.getCurrency();
-			for (uint i = j; i < gottenElmts.length; i++) gottenElmts[i] = false;
+			this.gottenElmts.length = P.getCurrency();
+			for (uint i = 0; i < j; i++) this.gottenElmts[i] = gottenElmts[i];
+			for (uint i = j; i < gottenElmts.length; i++) this.gottenElmts[i] = false;
 			}
 	}
 	
+	
+	/**
+	 * Pobranie tablicy węzłów podrzędnych
+	 */
 	TreeElmt[] getChildren() {
 		return children;
 	}
 	
+	
+	/**
+	 * Pobranie tablicy węzłów nadrzędnych
+	 */
 	TreeElmt getParent() {
 		return parent;
 	}
 	
+	
+	/**
+	 * Dodanie węzła podrzędnego
+	 */
 	void addChild(TreeElmt elmt) {
 		children.length = children.length + 1;
 		children[length - 1] = elmt;

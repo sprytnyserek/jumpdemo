@@ -30,32 +30,21 @@ GNU General Public License 3, <a href="http://www.gnu.org/licenses/gpl.html">htt
 <script>explorer.outline.incSymbolLevel();</script>
 <dl>
 <script>explorer.outline.writeEnabled = true;</script>
-<dt><span class="decl">uint 
-<span class="currsymbol">getLeaderNumber</span>
-<script>explorer.outline.addDecl('getLeaderNumber');</script>
-
-(T)(T[][] <span class="funcparam">set</span>);
-</span></dt>
-<script>explorer.outline.writeEnabled = false;</script>
-
-
-<dd>Wyznaczenie numeru elementu tablicy tablic <i>set</i>, który zawiera największą liczbę elementów
- 
-<br><br>
-
-</dd>
-
-<script>explorer.outline.writeEnabled = true;</script>
 <dt><span class="decl">uint[][] 
-<span class="currsymbol">ladderDecomp</span>
-<script>explorer.outline.addDecl('ladderDecomp');</script>
+<span class="currsymbol">linearExtensionbyDecomp</span>
+<script>explorer.outline.addDecl('linearExtensionbyDecomp');</script>
 
-(Poset <span class="funcparam">Q</span>);
+(Poset <span class="funcparam">P</span>, uint <span class="funcparam">k</span> = cast(uint)0);
 </span></dt>
 <script>explorer.outline.writeEnabled = false;</script>
 
 
-<dd>Rozkład drabinowy danego posetu (o ile istnieje), według algorytmu McCartin
+<dd>Znajduje optymalne rozszerzenie liniowe posetu z liczbą skoków ograniczoną z góry
+<br><br>
+<b>Zwraca:</b><br>
+tablica łańcuchów tworzących optymalne rozszerzenie liniowe posetu z ograniczoną z góry liczbą skoków;
+          albo pusta tablica, jeżeli nie istnieje rozszerzenie liniowe z taką liczbą skoków
+          if there's not any optimal linear extension with such a number of jumps
  
 <br><br>
 
@@ -68,7 +57,7 @@ GNU General Public License 3, <a href="http://www.gnu.org/licenses/gpl.html">htt
 		<tr><td id="docfooter">
 			Page was generated with
 			<img src="candydoc/img/candydoc.gif" style="vertical-align:middle; position:relative; top:-1px">
-			on Tue Apr 21 21:56:07 2009
+			on Thu Apr 23 22:11:09 2009
 
 		</td></tr>
 	</table>
