@@ -89,11 +89,13 @@ class Poset {
 	/**
 	 * Poprawienie połączeń między elementami posetu (przez rozszerzenie)
 	 */
-	private void correctDef() {
+	private bool correctDef() {
+		bool result;
 		for (uint i = 0; i < inlist.length; i++) {
 			foreach (uint j; inlist[i]) {
 				if (j >= outlist.length) throw new Exception("No such poset element: " ~ std.string.toString(j));
 				if (!contains(outlist[j],i)) {
+					result = true;
 					outlist[j].length = outlist[j].length + 1;
 					outlist[j][length - 1] = i;
 				}
@@ -101,11 +103,13 @@ class Poset {
 			foreach (uint j; outlist[i]) {
 				if (j >= inlist.length) throw new Exception("No such poset element: " ~ std.string.toString(j));
 				if (!contains(inlist[j],i)) {
+					result = true;
 					inlist[j].length = inlist[j].length + 1;
 					inlist[j][length - 1] = i;
 				}
 			}
 		}
+		return result;
 	}
 	
 	

@@ -42,9 +42,9 @@ import std.format;
 /* start of internal imports */
 import structure;
 import mccartinsol;
-/* end of internal imports */
-
 import preview;
+import painter;
+/* end of internal imports */
 
 class MainWindow: dfl.form.Form
 {
