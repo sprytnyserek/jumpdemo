@@ -129,6 +129,9 @@ class Poset {
 	} // buildCeiling
 	
 	
+	/**
+	 * Wybór wszystkich elementów większych od danego, z pominięciem dalszych relacji; odporny na cykle
+	 */
 	private uint[] managedBuildCeiling(uint elmt, inout uint[] result) {
 		if (elmt >= n) return [];
 		if (contains(result, elmt)) return [];
@@ -143,22 +146,44 @@ class Poset {
 	}
 	
 	
+	/**
+	 * Usuwa wszystkie tranzytywne przejscia wychodzace z elmt do elementow posetu wiekszych od elmt
+	 */
+	private void managedCleanCeiling(uint elmt, inout uint[] ceiling) {
+		if (elmt >= n) return;
+		if (contains(ceiling, elmt)) {
+			if (contains(inlist[elmt], ceiling[0])) { // jezeli wykryty konflikt wynika z istnienia 
+													  // tranzytywnego przejscia - usun je
+				remove(inlist[elmt], index(inlist[elmt], ceiling[0]));
+				remove(outlist[ceiling[0]], index(outlist[ceiling[0]], elmt));
+			}
+			return;
+		}
+		
+		ceiling ~= [elmt];
+		
+		foreach (uint i; outlist[elmt]) {
+			managedCleanCeiling(i, ceiling);
+		}
+	}
+	
+	
 	// dla kazdego elementu (w kolejnosci topologicznej? - niemozliwe) utworz jego pokrycie gorne
 	// i dla kazdego elementu pokrycia sprawdz, czy nie jest mniejszy od elementu biezacego;
 	// jezeli tak, opcjonalnie usun wiazanie wsteczne
 	private void makeAcyclic() { // assume Hasse diagram definition is consistent -- O(n^2)
 		uint[] ceiling;
 		for (uint i = 0; i < this.n; i++) {
-			while (contains(inlist[i], i)) remove(inlist[i], i);
-			while (contains(outlist[i], i)) remove(outlist[i], i);
+			while (contains(inlist[i], i)) remove(inlist[i], index(inlist[i], i));
+			while (contains(outlist[i], i)) remove(outlist[i], index(outlist[i], i));
 		}
 		for (uint i = 0; i < this.n; i++) {
 			ceiling.length = 0;
 			ceiling = managedBuildCeiling(i, ceiling);
 			foreach (uint j; ceiling) {
 				if (contains(outlist[j], i)) {
-					remove(outlist[j], i);
-					remove(inlist[i], j);
+					remove(outlist[j], index(outlist[j], i));
+					remove(inlist[i], index(inlist[i], j));
 				}
 			}
 		}
@@ -168,8 +193,12 @@ class Poset {
 	// tranzytywnosc mozna sprawdzic, wyznaczajac zbior elementow wiekszych od aktualnego, oznaczajac odwiedzone elementy;
 	// jezeli wskaznik dojdzie do elementu juz odwiedzonego, nalezy sprawdzic, czy wskazywany element nie pokrywa aktualnego;
 	// jezeli tak, to zaleznosc pokrywania elementu aktualnego przez wskazywany tworzy tranzytywne przejscie - do usuniecia
-	private void makeTransitFree(bool[] checked = []) {
-		
+	private void makeTransitFree() {
+		uint[] ceiling;
+		for (uint i = 0; i < this.n; i++) {
+			ceiling.length = 0;
+			managedCleanCeiling(i, ceiling);
+		}
 	}
 	
 	
@@ -233,7 +262,9 @@ class Poset {
 			outlist[i] = unique(outlist[i]);
 		}
 		n = inlist.length;
-		correctDef();
+		correctDef(); // poprawienie spojnosci struktury przez uzupelnienie brakujacych fragmentow relacji
+		makeAcyclic(); // usuniecie polaczen zamykajacych cykle skierowane w spojnej definicji posetu
+		makeTransitFree(); // usuniecie trazytywnych przejsc ze wszystkich elementow posetu zdefiniowanego spojnie
 	}
 	
 	
@@ -348,7 +379,16 @@ private uint[] unique(uint[] a) {
 
 
 /**
- * Usuwa pierwszy element z tablicy o podanej wartości
+ * Znajduje pierwszy element w tablicy o podanej wartości i zwraca jego indeks
+ */
+private uint index(uint[] a, uint elmt) {
+	for (uint i = 0; i < a.length; i++) if (a[i] == elmt) return i;
+	return a.length;
+} // index
+
+
+/**
+ * Usuwa pierwszy element z tablicy o podanym indeksie
  */
 private void remove(inout uint[] a, uint i) {
 	if (i < a.length) a = a[0 .. i] ~ a[(i + 1) .. $];
