@@ -152,16 +152,18 @@ int main()
 		//@  Other application initialization code here.
 		
 		Poset P = new Poset();
-		uint[][] inlist = [[1,7,11,16,21], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
-		uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [19,24], [0], [21], [22], [23]];
+		uint[][] inlist = [[1,7,11,16,21/* */,20/* */], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
+		uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [/* */0,/* */19,24], [0], [21], [22], [23]];
 		//uint[][] inlist = [[1], cast(uint[])[], [3], cast(uint[])[], cast(uint[])[]];
 		//uint[][] outlist = [cast(uint[])[], [0], cast(uint[])[], [2], cast(uint[])[]];
 		//uint[][] inlist = [[1], [2], cast(uint[])[], [5], cast(uint[])[], [1]];
 		//uint[][] outlist = [cast(uint[])[], [0], [1], cast(uint[])[], [3], [3]];
 		debug {
 			P.setInOutList(inlist, outlist);
+			writefln("inlist: ", P.getInlist());
+			writefln("outlist: ", P.getOutlist());
 			uint[][] e = linearExtensionbyDecomp(P, 5);
-			writefln("extension:", e);
+			writefln("extension: ", e);
 			//uint[] ceiling;
 			//ceiling = P.managedBuildCeiling(20, ceiling);
 			//writefln(ceiling);
