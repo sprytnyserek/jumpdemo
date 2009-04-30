@@ -77,7 +77,7 @@ class Poset {
 	/**
 	 * Sprawdzenie symetrii połączeń między elementami posetu
 	 */
-	private bool isConsistent() {
+	private bool isConsistent() { // O(n^2)
 		for (uint i = 0; i < inlist.length; i++) {
 			foreach (uint j; inlist[i]) if (!contains(outlist[j],i)) return false;
 			foreach (uint j; outlist[i]) if (!contains(inlist[j],i)) return false;
@@ -110,6 +110,66 @@ class Poset {
 			}
 		}
 		return result;
+	}
+	
+	
+	/**
+	 * Wybór wszystkich elementów posetu większych od danego, z pominięciem dalszych relacji
+	 *
+	 * Poset jest acykliczny i tranzytywnie wolny
+	 */
+	private uint[] buildCeiling(uint elmt) {
+		if (elmt >= n) return [];
+		uint[] result = [elmt];
+		
+		foreach (uint i; outlist[elmt]) {
+			result ~= buildCeiling(i);
+		}
+		return unique(result);
+	} // buildCeiling
+	
+	
+	private uint[] managedBuildCeiling(uint elmt, inout uint[] result) {
+		if (elmt >= n) return [];
+		if (contains(result, elmt)) return [];
+		
+		result ~= [elmt];
+		
+		foreach (uint i; outlist[elmt]) {
+			managedBuildCeiling(i, result);
+		}
+		
+		return result;
+	}
+	
+	
+	// dla kazdego elementu (w kolejnosci topologicznej? - niemozliwe) utworz jego pokrycie gorne
+	// i dla kazdego elementu pokrycia sprawdz, czy nie jest mniejszy od elementu biezacego;
+	// jezeli tak, opcjonalnie usun wiazanie wsteczne
+	private void makeAcyclic() { // assume Hasse diagram definition is consistent -- O(n^2)
+		uint[] ceiling;
+		for (uint i = 0; i < this.n; i++) {
+			while (contains(inlist[i], i)) remove(inlist[i], i);
+			while (contains(outlist[i], i)) remove(outlist[i], i);
+		}
+		for (uint i = 0; i < this.n; i++) {
+			ceiling.length = 0;
+			ceiling = managedBuildCeiling(i, ceiling);
+			foreach (uint j; ceiling) {
+				if (contains(outlist[j], i)) {
+					remove(outlist[j], i);
+					remove(inlist[i], j);
+				}
+			}
+		}
+	}
+	
+	
+	// tranzytywnosc mozna sprawdzic, wyznaczajac zbior elementow wiekszych od aktualnego, oznaczajac odwiedzone elementy;
+	// jezeli wskaznik dojdzie do elementu juz odwiedzonego, nalezy sprawdzic, czy wskazywany element nie pokrywa aktualnego;
+	// jezeli tak, to zaleznosc pokrywania elementu aktualnego przez wskazywany tworzy tranzytywne przejscie - do usuniecia
+	private void makeTransitFree(bool[] checked = []) {
+		
 	}
 	
 	
@@ -285,6 +345,14 @@ private uint[] unique(uint[] a) {
 	}
 	return result;
 }
+
+
+/**
+ * Usuwa pierwszy element z tablicy o podanej wartości
+ */
+private void remove(inout uint[] a, uint i) {
+	if (i < a.length) a = a[0 .. i] ~ a[(i + 1) .. $];
+} // remove
 
 
 /**

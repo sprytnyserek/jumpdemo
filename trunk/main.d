@@ -162,6 +162,9 @@ int main()
 			P.setInOutList(inlist, outlist);
 			uint[][] e = linearExtensionbyDecomp(P, 5);
 			writefln("extension:", e);
+			//uint[] ceiling;
+			//ceiling = P.managedBuildCeiling(20, ceiling);
+			//writefln(ceiling);
 		}
 		Application.run(new MainWindow());
 	}
