@@ -160,6 +160,7 @@ int main()
 		//uint[][] outlist = [cast(uint[])[], [0], [1], cast(uint[])[], [3], [3]];
 		debug {
 			P.setInOutList(inlist, outlist);
+			PosetPainter painter = new PosetPainter(P);
 			writefln("inlist: ", P.getInlist());
 			writefln("outlist: ", P.getOutlist());
 			uint[][] e = linearExtensionbyDecomp(P, 5);
