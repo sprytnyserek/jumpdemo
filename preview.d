@@ -23,7 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA,
 or see <http://www.gnu.org/licenses/>.
 */
 
-private import dfl.all;
+private {
+	import dfl.all;
+	
+	import structure;
+}
 
 
 class Preview: dfl.panel.Panel
@@ -64,5 +68,46 @@ class Preview: dfl.panel.Panel
 		pictureBox1.bounds = dfl.all.Rect(0, 0, 200, 200);
 		pictureBox1.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
+		//this.scrollSize = Size(688, 352);
 	}
+	
+	
+	void drawDiagram(Poset P, uint[2][] grid, uint[][] chains = []) {
+		//Graphics g = pictureBox1.createGraphics();
+		//Color c = Color.fromArgb(0,255,0,0);
+		//g.drawLine(new Pen(c), Point(0,0), Point(100,100));
+		Graphics g = pictureBox1.createGraphics();
+		Color c = Color.fromArgb(0, 0, 0, 0);
+		Pen p = new Pen(c);
+		uint[][] outlist = P.getOutlist();
+		for (uint i = 0; i < outlist.length; i++) {
+			foreach (uint j; outlist[i]) {
+				g.drawLine(p, Point(grid[i][0], grid[i][1]), Point(grid[j][0], grid[j][1]));
+			}
+		}
+		Color wc = Color.fromArgb(0, 255, 255, 255);
+		Pen wp = new Pen(wc);
+		for (uint i = 0; i < outlist.length; i++) {
+			g.drawEllipse(p, Rect(grid[i][0] - 5, grid[i][1] - 5, 10, 10));
+			for (uint j = 0; j < 5; j++) g.drawEllipse(wp, Rect(grid[i][0] - j, grid[i][1] - j, 2 * j, 2 * j));
+			/+g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] + 1, grid[i][1] + 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] + 1, grid[i][1] - 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] - 1, grid[i][1] + 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] - 1, grid[i][1] - 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] + 1, grid[i][1]));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0], grid[i][1] - 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] - 1, grid[i][1]));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0], grid[i][1] + 1));+/
+			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1], 1, 1));
+			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1] - 1, 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1], 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1], 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1] - 1, 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1] - 1, 2, 2));
+		}
+		
+		//pictureBox1.redraw();
+	}
+	
+	
 }

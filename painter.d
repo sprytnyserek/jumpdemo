@@ -168,8 +168,8 @@ or see <http://www.gnu.org/licenses/>.
  			columns = columns < elmts[i].column ? elmts[i].column : columns;
  			if (rowCapacity.length < elmts[i].row) rowCapacity.length = elmts[i].row;
  			if (colCapacity.length < elmts[i].column) colCapacity.length = elmts[i].column;
- 			rowCapacity[elmts[i].row] += 1;
- 			colCapacity[elmts[i].column] += 1;
+ 			rowCapacity[elmts[i].row - 1] += 1;
+ 			colCapacity[elmts[i].column - 1] += 1;
  		}
  		uint[2][] result;
  		result.length = elmts.length;
@@ -181,9 +181,9 @@ or see <http://www.gnu.org/licenses/>.
  		if ((columns - 1) * space + 20 < gridWidth) {
  			x11 += (gridWidth - ((columns - 1) * space + 20)) / 2;
  		}
- 		if (y11 < gridHeight) {
+ 		/+if (y11 < gridHeight) {
  			y11 += (gridHeight - y11) / 2;
- 		}
+ 		}+/
  		foreach (i; elmts) {
  			result[i.elmt][0] = x11 + space * (i.column - 1);
  			result[i.elmt][1] = y11 - space * (i.row - 1);

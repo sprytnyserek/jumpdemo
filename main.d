@@ -53,9 +53,8 @@ class MainWindow: dfl.form.Form
 	dfl.button.Button spawnButton;
 	dfl.button.Button exitButton;
 	dfl.textbox.TextBox textBox1;
-	dfl.picturebox.PictureBox pictureBox1;
 	//~Entice Designer variables end here.
-	//Preview panel1;
+	Preview panel1;
 	Thread processing;
 	Poset P;
 	char[] filename;
@@ -115,29 +114,35 @@ class MainWindow: dfl.form.Form
 		textBox1.name = "textBox1";
 		textBox1.bounds = dfl.all.Rect(368, 40, 368, 40);
 		textBox1.parent = this;
-		//~DFL dfl.picturebox.PictureBox=pictureBox1
-		pictureBox1 = new dfl.picturebox.PictureBox();
-		pictureBox1.name = "pictureBox1";
-		pictureBox1.bounds = dfl.all.Rect(24, 104, 712, 456);
-		pictureBox1.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
-		/+panel1 = new Preview();
+		panel1 = new Preview();
 		panel1.name = "panel2";
-		panel1.bounds = dfl.all.Rect(200, 32, 216, 200);
+		panel1.bounds = dfl.all.Rect(24, 104, 712, 456);
 		//panel1.dock = dfl.all.DockStyle.FILL;
-		panel1.parent = this;+/
+		panel1.scrollSize(Size(panel1.right, panel1.bottom));
+		panel1.vScroll(true);
+		panel1.hScroll(true);
+		panel1.parent = this;
 		textBox1.scrollBars(textBox1.scrollBars.HORIZONTAL);
 	}
 	
 	private void spawnButton_click(Object sender, EventArgs ea) {
-		OpenFileDialog dialog = new OpenFileDialog();
+		/+OpenFileDialog dialog = new OpenFileDialog();
 		dialog.multiselect = false;
 		dialog.showDialog();
 		filename = dialog.fileName();
 		textBox1.text = "Processing...";
 		if (processing) delete processing;
 		processing = new Thread(&(this.th));
-		processing.start();
+		processing.start();+/
+		Poset P = new Poset();
+		uint[][] inlist = [[1,7,11,16,21/* */,20/* */], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
+		uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [/* */0,/* */19,24], [0], [21], [22], [23]];
+		P.setInOutList(inlist, outlist);
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(20, 40, panel1.right, panel1.bottom);
+		//for (uint i = 0; i < pos.length; i++) writefln("%4d%5d :%5d", i, pos[i][0], pos[i][1]);
+		panel1.drawDiagram(P, pos);
 	}
 	
 	private void exitButton_click(Object sender, EventArgs ea) {
