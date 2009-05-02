@@ -53,6 +53,7 @@ class MainWindow: dfl.form.Form
 	dfl.button.Button spawnButton;
 	dfl.button.Button exitButton;
 	dfl.textbox.TextBox textBox1;
+	dfl.picturebox.PictureBox pictureBox1;
 	//~Entice Designer variables end here.
 	//Preview panel1;
 	Thread processing;
@@ -96,7 +97,7 @@ class MainWindow: dfl.form.Form
 		//~Entice Designer 0.8.5.02 code begins here.
 		//~DFL Form
 		text = "FPT Jump Demo";
-		clientSize = dfl.all.Size(416, 264);
+		clientSize = dfl.all.Size(800, 600);
 		//~DFL dfl.button.Button=spawnButton
 		spawnButton = new dfl.button.Button();
 		spawnButton.name = "spawnButton";
@@ -107,13 +108,18 @@ class MainWindow: dfl.form.Form
 		exitButton = new Button();
 		exitButton.name = "exitButton";
 		exitButton.text = "Zakończ";
-		exitButton.bounds = dfl.all.Rect(256, 40, 136, 32);
+		exitButton.bounds = dfl.all.Rect(176, 40, 136, 32);
 		exitButton.parent = this;
 		//~DFL dfl.textbox.TextBox=textBox1
 		textBox1 = new dfl.textbox.TextBox();
 		textBox1.name = "textBox1";
-		textBox1.bounds = dfl.all.Rect(24, 120, 368, 40);
+		textBox1.bounds = dfl.all.Rect(368, 40, 368, 40);
 		textBox1.parent = this;
+		//~DFL dfl.picturebox.PictureBox=pictureBox1
+		pictureBox1 = new dfl.picturebox.PictureBox();
+		pictureBox1.name = "pictureBox1";
+		pictureBox1.bounds = dfl.all.Rect(24, 104, 712, 456);
+		pictureBox1.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		/+panel1 = new Preview();
 		panel1.name = "panel2";

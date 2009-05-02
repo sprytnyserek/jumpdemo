@@ -106,13 +106,37 @@ or see <http://www.gnu.org/licenses/>.
  		}
  	}
  	
+ 	
+ 	uint[][] selectColumns() {
+ 		// sprawdzenie numeracji wierszy - liczba wierszy, gestosc rozmieszczenia - wszystko w kolejnosci topologicznej
+		uint[] rowCapacity; // wiersze zasadniczo numerowane od 1, ale tu od 0, aby nie marnowac miejsca
+		uint[] colCapacity;
+		for (uint i = 0; i < elmts.length; i++) {
+			if (elmts[i].row > rowCapacity.length) rowCapacity.length = elmts[i].row;
+			rowCapacity[elmts[i].row - 1] += 1; // przenumerowanie do 0
+			elmts[i].column = rowCapacity[elmts[i].row - 1];
+			if (elmts[i].column > colCapacity.length) colCapacity.length = elmts[i].column;
+			colCapacity[elmts[i].column - 1] += 1;
+		}
+		for (uint i = 0; i < elmts.length; i++) {
+			uint row = elmts[i].row;
+			//writefln(colCapacity.length);
+			if (rowCapacity[row - 1] < colCapacity.length) {
+				//writefln("rowCapacity: ", rowCapacity[row - 1]);
+				colCapacity[elmts[i].column - 1] -= 1;
+				colCapacity[(elmts[i].column + ((colCapacity.length - rowCapacity[row - 1]) / 2)) - 1] += 1;
+				elmts[i].column += (colCapacity.length - rowCapacity[row - 1]) / 2;
+			}
+		}
+		return [rowCapacity, colCapacity];
+ 	}
+ 	
+ 	
  	public:
  	this(Poset P = null) {
  		this.P = new Poset();
  		if (P !is null) {
- 			this.P.setInOutList(P.getInlist(), P.getOutlist());
- 			createPosetArray();
- 			
+ 			createPainter(P);
  			debug for (uint i = 0; i < elmts.length; i++) writef("%2s ", elmts[i].elmt);
  			debug writefln();
  			debug for (uint i = 0; i < elmts.length; i++) writef("%2s ", elmts[i].row);
@@ -124,6 +148,49 @@ or see <http://www.gnu.org/licenses/>.
  	~this() {
  		
  	}
+ 	
+ 	
+ 	void createPainter(Poset P) {
+ 		if (P is null) return;
+ 		this.P = new Poset();
+ 		this.P.setInOutList(P.getInlist(), P.getOutlist());
+		createPosetArray();
+		uint[][] capacity = selectColumns();
+ 	}
+ 	
+ 	
+ 	uint[2][] getGrid(uint minSpace, uint maxSpace, uint gridWidth, uint gridHeight) {
+ 		if ((gridWidth <= 20) || (gridHeight <= 20)) return [];
+ 		uint rows, columns;
+ 		uint[] rowCapacity, colCapacity;
+ 		for (uint i = 0; i < elmts.length; i++) {
+ 			rows = rows < elmts[i].row ? elmts[i].row : rows;
+ 			columns = columns < elmts[i].column ? elmts[i].column : columns;
+ 			if (rowCapacity.length < elmts[i].row) rowCapacity.length = elmts[i].row;
+ 			if (colCapacity.length < elmts[i].column) colCapacity.length = elmts[i].column;
+ 			rowCapacity[elmts[i].row] += 1;
+ 			colCapacity[elmts[i].column] += 1;
+ 		}
+ 		uint[2][] result;
+ 		result.length = elmts.length;
+ 		uint space = gridWidth < gridHeight ? (gridWidth - 20) / (columns - 1) : (gridHeight - 20) / (columns - 1);
+ 		if (space < minSpace) space = minSpace;
+ 		else if (space > maxSpace) space = maxSpace;
+ 		uint y11 = (rows - 1) * space + 20;
+ 		uint x11 = 20;
+ 		if ((columns - 1) * space + 20 < gridWidth) {
+ 			x11 += (gridWidth - ((columns - 1) * space + 20)) / 2;
+ 		}
+ 		if (y11 < gridHeight) {
+ 			y11 += (gridHeight - y11) / 2;
+ 		}
+ 		foreach (i; elmts) {
+ 			result[i.elmt][0] = x11 + space * (i.column - 1);
+ 			result[i.elmt][1] = y11 - space * (i.row - 1);
+ 		}
+ 		return result;
+ 	}
+ 	
  	
  } // end of PosetPainter class definition
  
