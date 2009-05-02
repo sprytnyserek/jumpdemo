@@ -39,14 +39,16 @@ private {
  */
 class ArcPoset : Poset {
 	private:
-	// uint[][] inlist, outlist;
-	// uint n;
-	uint verts; // number of vertices in arc reprezentation
+	// uint[][] inlist, outlist; -- derived
+	// uint n; -- derived
+	uint verts; // number of vertices in arc reprezentation (always equal or more than n + 1)
 	uint[] tail, head; // tail and head of i-arc in arc reprezentation; (i < n) => i-poset arc; otherwise i-dummy arc
 	
 	public:
 	this() {
 		super();
-		
+		verts = 1; // vertex that is source'n'sink in one
+		tail.length = 0;
+		head.length = 0;
 	}
 }
