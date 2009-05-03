@@ -33,6 +33,7 @@ private {
 	import std.string;
 	import std.stream;
 	import std.conv;
+	import std.random;
 } // end of imports
 
 
@@ -349,6 +350,29 @@ class Poset {
 		return 0;
 	}
 	
+	
+	static synchronized Poset randomPoset(uint n = 0) {
+		while (n == 0) n = rand() % int.max;
+		Poset P = new Poset();
+		uint[][] inlist, outlist;
+		inlist.length = outlist.length = n;
+		uint coinc;
+		uint newinc;
+		for (uint i = 0; i < n; i++) {
+			coinc = rand() % n;
+			for (uint j = 0; j < coinc; j++) {
+				newinc = i;
+				while (newinc == i) newinc = rand() % n;
+				inlist[i].length = inlist[i].length + 1;
+				inlist[i][length - 1] = newinc;
+				outlist[newinc].length = outlist[newinc].length + 1;
+				outlist[newinc][length - 1] = i;
+			}
+		}
+	P.setInOutList(inlist, outlist);
+	return P;
+	}
+
 }
 
 
