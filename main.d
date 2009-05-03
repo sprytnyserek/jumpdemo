@@ -50,23 +50,29 @@ class MainWindow: dfl.form.Form
 {
 	// Do not modify or move this block of variables.
 	//~Entice Designer variables begin here.
-	dfl.button.Button spawnButton;
-	dfl.button.Button exitButton;
-	dfl.textbox.TextBox textBox1;
+	dfl.label.Label statusBar;
 	//~Entice Designer variables end here.
 	Preview panel1;
-	Thread processing;
+	Thread openProcessing;
 	Poset P;
 	char[] filename;
+	MenuItem mpop, mi;
 	
-	private int th() {
+	private int thOpen() {
 		P = new Poset();
 		P.fromFile(filename);
-		uint[][] result;
+		//uint[][] result;
 		//result = ladderDecomp(P);
-		char[] resultString = "";
+		//char[] resultString = "";
 		//for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
 		//textBox1.text(resultString);
+		statusBar.text("Otwieranie...");
+		menu.menuItems[0].enabled(false);
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos);
+		menu.menuItems[0].enabled(true);
+		statusBar.text("Gotowy");
 		return 0;
 	}
 	
@@ -75,18 +81,41 @@ class MainWindow: dfl.form.Form
 		initializeMain();
 		
 		//@  Other main initialization code here.
-		spawnButton.click ~= &spawnButton_click;
-		exitButton.click ~= &exitButton_click;
+		//spawnButton.click ~= &spawnButton_click;
+		//exitButton.click ~= &exitButton_click;
 		//Graphics g = pictureBox1.createGraphics();
 		//Color c = Color.fromArgb(0,255,0,0);
 		//g.drawLine(new Pen(c), Point(0,0), Point(100,100));
 		//processing = new Thread(&(this.th));
+		menu = new MainMenu();
+		with (mpop = new MenuItem) {
+			text = "&Plik";
+			index = 0;
+			this.menu.menuItems.add(mpop);
+		}
+		with (mi = new MenuItem) {
+			text = "&Otwórz";
+			index = 0;
+			click ~= &fileOpenMenu_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "-";
+			index = 1;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Za&kończ";
+			index = 2;
+			click ~= &fileExitMenu_click;
+			mpop.menuItems.add(mi);
+		}
 		
 	}
 	
 	
 	~this() {
-		if (processing) delete processing;
+		if (openProcessing) delete openProcessing;
 	}
 	
 	
@@ -97,55 +126,54 @@ class MainWindow: dfl.form.Form
 		//~DFL Form
 		text = "FPT Jump Demo";
 		clientSize = dfl.all.Size(800, 600);
-		//~DFL dfl.button.Button=spawnButton
-		spawnButton = new dfl.button.Button();
-		spawnButton.name = "spawnButton";
-		spawnButton.text = "Otwórz";
-		spawnButton.bounds = dfl.all.Rect(24, 40, 136, 31);
-		spawnButton.parent = this;
-		//~DFL dfl.button.Button=exitButton
-		exitButton = new Button();
-		exitButton.name = "exitButton";
-		exitButton.text = "Zakończ";
-		exitButton.bounds = dfl.all.Rect(176, 40, 136, 32);
-		exitButton.parent = this;
-		//~DFL dfl.textbox.TextBox=textBox1
-		textBox1 = new dfl.textbox.TextBox();
-		textBox1.name = "textBox1";
-		textBox1.bounds = dfl.all.Rect(368, 40, 368, 40);
-		textBox1.parent = this;
+		//~DFL dfl.label.Label=statusBar
+		statusBar = new dfl.label.Label();
+		statusBar.name = "statusBar";
+		statusBar.dock = dfl.all.DockStyle.BOTTOM;
+		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
+		statusBar.bounds = dfl.all.Rect(0, 577, 800, 23);
+		statusBar.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
 		panel1.name = "panel2";
 		panel1.bounds = dfl.all.Rect(24, 104, 712, 456);
-		//panel1.dock = dfl.all.DockStyle.FILL;
+		panel1.dock = DockStyle.FILL;
 		panel1.scrollSize(Size(panel1.right, panel1.bottom));
 		panel1.vScroll(true);
 		panel1.hScroll(true);
 		panel1.parent = this;
-		textBox1.scrollBars(textBox1.scrollBars.HORIZONTAL);
+		//textBox1.scrollBars(textBox1.scrollBars.HORIZONTAL);
 	}
 	
-	private void spawnButton_click(Object sender, EventArgs ea) {
+	private void fileOpenMenu_click(Object sender, EventArgs ea) {
 		/+OpenFileDialog dialog = new OpenFileDialog();
 		dialog.multiselect = false;
 		dialog.showDialog();
 		filename = dialog.fileName();
-		textBox1.text = "Processing...";
+		//textBox1.text = "Processing...";
 		if (processing) delete processing;
 		processing = new Thread(&(this.th));
 		processing.start();+/
-		Poset P = new Poset();
-		uint[][] inlist = [[1,7,11,16,21/* */,20/* */], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
-		uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [/* */0,/* */19,24], [0], [21], [22], [23]];
+		/+Poset P = new Poset();
+		//uint[][] inlist = [[1,7,11,16,21/* */,20/* */], [2], [3], [4], [5], [6], [], [8], [9], [10], [5], [12], [13], [14], [15], [6], [17], [18], [19], [20], [], [22], [23], [24], [20]];
+		//uint[][] outlist = [cast(uint[])([]), [0], [1], [2], [3], [4,10], [5,15], [0], [7], [8], [9], [0], [11], [12], [13], [14], [0], [16], [17], [18], [/* */0,/* */19,24], [0], [21], [22], [23]];
+		uint[][] inlist = [[1], cast(uint[])[], [3, 1], cast(uint[])[], [3]];
+		uint[][] outlist = [cast(uint[])[], [0, 2], cast(uint[])[], [2, 4], cast(uint[])[]];
 		P.setInOutList(inlist, outlist);
 		PosetPainter painter = new PosetPainter(P);
-		uint[2][] pos = painter.getGrid(20, 40, panel1.right, panel1.bottom);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		//for (uint i = 0; i < pos.length; i++) writefln("%4d%5d :%5d", i, pos[i][0], pos[i][1]);
-		panel1.drawDiagram(P, pos);
+		panel1.drawDiagram(P, pos);+/
+		OpenFileDialog dialog = new OpenFileDialog();
+		dialog.multiselect = false;
+		dialog.showDialog();
+		filename = dialog.fileName();
+		if (openProcessing) delete openProcessing;
+		openProcessing = new Thread(&(this.thOpen));
+		openProcessing.start();
 	}
 	
-	private void exitButton_click(Object sender, EventArgs ea) {
+	private void fileExitMenu_click(Object sender, EventArgs ea) {
 		Application.exit();
 	}
 	
@@ -169,7 +197,7 @@ int main()
 		//uint[][] outlist = [cast(uint[])[], [0], cast(uint[])[], [2], cast(uint[])[]];
 		//uint[][] inlist = [[1], [2], cast(uint[])[], [5], cast(uint[])[], [1]];
 		//uint[][] outlist = [cast(uint[])[], [0], [1], cast(uint[])[], [3], [3]];
-		debug {
+		/+debug {
 			P.setInOutList(inlist, outlist);
 			PosetPainter painter = new PosetPainter(P);
 			writefln("inlist: ", P.getInlist());
@@ -179,7 +207,7 @@ int main()
 			//uint[] ceiling;
 			//ceiling = P.managedBuildCeiling(20, ceiling);
 			//writefln(ceiling);
-		}
+		}+/
 		Application.run(new MainWindow());
 	}
 	catch(Object o)

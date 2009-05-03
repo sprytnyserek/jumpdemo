@@ -27,6 +27,7 @@ private {
 	import dfl.all;
 	
 	import structure;
+	static import std.string;
 }
 
 
@@ -47,9 +48,12 @@ class Preview: dfl.panel.Panel
 		this.vScroll(true);
 		this.hScroll(true);
 		
+		//this.click ~= &this_click;
+		
 		//Bitmap b = new Bitmap("D:\\dokumenty\\zboqk1.bmp");
 		//pictureBox1.image = b;
 		//this.scrollSize(b.size);
+		
 	}
 	
 	
@@ -69,9 +73,11 @@ class Preview: dfl.panel.Panel
 		pictureBox1.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		//this.scrollSize = Size(688, 352);
+		//this.controls.add(pictureBox1);
 	}
 	
 	
+	/+
 	void drawDiagram(Poset P, uint[2][] grid, uint[][] chains = []) {
 		//Graphics g = pictureBox1.createGraphics();
 		//Color c = Color.fromArgb(0,255,0,0);
@@ -105,8 +111,80 @@ class Preview: dfl.panel.Panel
 			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1] - 1, 2, 2));
 			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1] - 1, 2, 2));
 		}
-		
+		//pictureBox1.image = new Bitmap(g);
 		//pictureBox1.redraw();
+		g.flush();
+		MemoryGraphics mg = new MemoryGraphics(100, 100);
+		//mg.drawLine(p, Point(0, 0), Point(99, 99));
+		Bitmap b = mg.toBitmap();
+		pictureBox1.image = b;
+	}
+	+/
+	
+	
+	void drawDiagram(Poset P, uint[2][] grid, uint[][] chains = []) {
+		uint maxX, maxY;
+		for (uint i = 0; i < grid.length; i++) {
+			maxX = maxX < grid[i][0] ? grid[i][0] : maxX;
+			maxY = maxY < grid[i][1] ? grid[i][1] : maxY;
+		}
+		maxX += 20;
+		maxY += 20;
+		maxX = maxX < this.width ? this.width : maxX;
+		maxY = maxY < this.height ? this.height : maxY;
+		MemoryGraphics g = new MemoryGraphics(maxX, maxY);
+		g.fillRectangle(Color.fromArgb(0, 255, 255, 255), 0, 0, g.width, g.height);
+		Color c = Color.fromArgb(0, 0, 0, 0);
+		Pen p = new Pen(c);
+		uint[][] outlist = P.getOutlist();
+		for (uint i = 0; i < outlist.length; i++) {
+			foreach (uint j; outlist[i]) {
+				g.drawLine(p, Point(grid[i][0], grid[i][1]), Point(grid[j][0], grid[j][1]));
+			}
+		}
+		Color wc = Color.fromArgb(0, 255, 255, 255);
+		Pen wp = new Pen(wc);
+		TextFormat frmt = new TextFormat();
+		frmt.alignment(TextAlignment.CENTER);
+		frmt.leftMargin(1);
+		frmt.rightMargin(1);
+		for (uint i = 0; i < outlist.length; i++) {
+			//g.drawEllipse(p, Rect(grid[i][0] - 10, grid[i][1] - 5, 20, 10));
+			//for (uint j = 0; j < 5; j++) g.drawEllipse(wp, Rect(grid[i][0] - j, grid[i][1] - j, 2 * j, 2 * j));
+			Rect r = Rect(grid[i][0] - 15, grid[i][1] - 7, 30, 14);
+			g.drawRectangle(p, r);
+			g.fillRectangle(Color.fromArgb(0, 255, 255, 255), grid[i][0] - 14, grid[i][1] - 6, 28, 12);
+			//g.drawText(std.string.toString(i), font, c, r, frmt);
+			/+g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] + 1, grid[i][1] + 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] + 1, grid[i][1] - 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] - 1, grid[i][1] + 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] - 1, grid[i][1] - 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] + 1, grid[i][1]));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0], grid[i][1] - 1));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0] - 1, grid[i][1]));
+			g.drawLine(wp, Point(grid[i][0], grid[i][1]), Point(grid[i][0], grid[i][1] + 1));+/
+			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1], 1, 1));
+			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1] - 1, 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1], 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1], 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1] - 1, 2, 2));
+			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1] - 1, 2, 2));
+			g.drawText(std.string.toString(i), font, c, r, frmt);
+		}
+		g.flush();
+		Bitmap b = g.toBitmap();
+		pictureBox1.image = b;
+		delete g;
+	}
+	
+	
+	private void this_click(Object sender, EventArgs lea) {
+		//this.backColor = Color.fromArgb(0, 255, 0, 0);
+		Graphics g = this.createGraphics();
+		Color c = Color.fromArgb(0,255,0,0);
+		Pen p = new Pen(c);
+		g.drawLine(p, Point(this.left, this.top), Point(this.right, this.bottom));
+		g.flush();
 	}
 	
 	
