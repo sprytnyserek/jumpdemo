@@ -132,6 +132,7 @@ class Preview: dfl.panel.Panel
 		maxY += 20;
 		maxX = maxX < this.width ? this.width : maxX;
 		maxY = maxY < this.height ? this.height : maxY;
+		//this.scrollSize(Size(this.width, this.height));
 		MemoryGraphics g = new MemoryGraphics(maxX, maxY);
 		g.fillRectangle(Color.fromArgb(0, 255, 255, 255), 0, 0, g.width, g.height);
 		Color c = Color.fromArgb(0, 0, 0, 0);

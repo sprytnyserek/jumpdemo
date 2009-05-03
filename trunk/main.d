@@ -44,6 +44,7 @@ import structure;
 import mccartinsol;
 import preview;
 import painter;
+import randomposet;
 /* end of internal imports */
 
 class MainWindow: dfl.form.Form
@@ -51,12 +52,14 @@ class MainWindow: dfl.form.Form
 	// Do not modify or move this block of variables.
 	//~Entice Designer variables begin here.
 	dfl.label.Label statusBar;
+	dfl.panel.Panel controlPanel;
 	//~Entice Designer variables end here.
 	Preview panel1;
 	Thread openProcessing;
 	Poset P;
 	char[] filename;
 	MenuItem mpop, mi;
+	Label previewLabel;
 	
 	private int thOpen() {
 		P = new Poset();
@@ -67,11 +70,12 @@ class MainWindow: dfl.form.Form
 		//for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
 		//textBox1.text(resultString);
 		statusBar.text("Otwieranie...");
-		menu.menuItems[0].enabled(false);
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
 		PosetPainter painter = new PosetPainter(P);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		panel1.drawDiagram(P, pos);
-		menu.menuItems[0].enabled(true);
+		menu.menuItems[0].menuItems[0].enabled(true);
 		statusBar.text("Gotowy");
 		return 0;
 	}
@@ -87,6 +91,12 @@ class MainWindow: dfl.form.Form
 		//Color c = Color.fromArgb(0,255,0,0);
 		//g.drawLine(new Pen(c), Point(0,0), Point(100,100));
 		//processing = new Thread(&(this.th));
+		previewLabel = new Label();
+		previewLabel.text = "Podgląd";
+		previewLabel.dock = DockStyle.BOTTOM;
+		previewLabel.height = 15;
+		previewLabel.parent = controlPanel;
+		controlPanel.redraw();
 		menu = new MainMenu();
 		with (mpop = new MenuItem) {
 			text = "&Plik";
@@ -111,6 +121,18 @@ class MainWindow: dfl.form.Form
 			mpop.menuItems.add(mi);
 		}
 		
+		with (mpop = new MenuItem) {
+			text = "&Dane";
+			index = 1;
+			this.menu.menuItems.add(mpop);
+		}
+		with (mi = new MenuItem) {
+			text = "&Losuj";
+			index = 0;
+			click ~= &dataMenuRandom_click;
+			mpop.menuItems.add(mi);
+		}
+		
 	}
 	
 	
@@ -127,15 +149,22 @@ class MainWindow: dfl.form.Form
 		text = "FPT Jump Demo";
 		clientSize = dfl.all.Size(800, 600);
 		//~DFL dfl.label.Label=statusBar
-		statusBar = new dfl.label.Label();
+		statusBar = new Label();
 		statusBar.name = "statusBar";
 		statusBar.dock = dfl.all.DockStyle.BOTTOM;
 		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
-		statusBar.bounds = dfl.all.Rect(0, 577, 800, 23);
+		statusBar.textAlign = dfl.all.ContentAlignment.BOTTOM_LEFT;
+		statusBar.bounds = dfl.all.Rect(0, 577, 800, 18);
 		statusBar.parent = this;
+		//~DFL dfl.panel.Panel=controlPanel
+		controlPanel = new dfl.panel.Panel();
+		controlPanel.name = "controlPanel";
+		controlPanel.dock = dfl.all.DockStyle.TOP;
+		controlPanel.bounds = dfl.all.Rect(0, 0, 800, 144);
+		controlPanel.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
-		panel1.name = "panel2";
+		panel1.name = "panel1";
 		panel1.bounds = dfl.all.Rect(24, 104, 712, 456);
 		panel1.dock = DockStyle.FILL;
 		panel1.scrollSize(Size(panel1.right, panel1.bottom));
@@ -168,6 +197,7 @@ class MainWindow: dfl.form.Form
 		dialog.multiselect = false;
 		dialog.showDialog();
 		filename = dialog.fileName();
+		if ((!filename) || (filename.length == 0)) return;
 		if (openProcessing) delete openProcessing;
 		openProcessing = new Thread(&(this.thOpen));
 		openProcessing.start();
@@ -175,6 +205,12 @@ class MainWindow: dfl.form.Form
 	
 	private void fileExitMenu_click(Object sender, EventArgs ea) {
 		Application.exit();
+	}
+	
+	
+	private void dataMenuRandom_click(Object sender, EventArgs ea) {
+		RandomPoset dialog = new RandomPoset();
+		dialog.showDialog();
 	}
 	
 }

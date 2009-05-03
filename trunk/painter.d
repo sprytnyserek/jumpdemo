@@ -137,10 +137,10 @@ or see <http://www.gnu.org/licenses/>.
  		this.P = new Poset();
  		if (P !is null) {
  			createPainter(P);
- 			debug for (uint i = 0; i < elmts.length; i++) writef("%2s ", elmts[i].elmt);
+ 			/+debug for (uint i = 0; i < elmts.length; i++) writef("%2s ", elmts[i].elmt);
  			debug writefln();
  			debug for (uint i = 0; i < elmts.length; i++) writef("%2s ", elmts[i].row);
- 			debug writefln();
+ 			debug writefln();+/
  		}
  	}
  	
