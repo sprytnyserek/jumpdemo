@@ -38,6 +38,7 @@ import std.process;
 import std.thread;
 import std.string;
 import std.format;
+import std.conv;
 
 /* start of internal imports */
 import structure;
@@ -53,10 +54,15 @@ class MainWindow: dfl.form.Form
 	//~Entice Designer variables begin here.
 	dfl.label.Label statusBar;
 	dfl.panel.Panel controlPanel;
+	dfl.label.Label parameterLabel;
+	dfl.textbox.TextBox parameterBox;
+	dfl.button.Button runButton;
+	dfl.label.Label label2;
 	//~Entice Designer variables end here.
 	Preview panel1;
-	Thread openProcessing;
+	Thread processing;
 	Poset P;
+	uint[][] result;
 	char[] filename;
 	MenuItem mpop, mi;
 	Label previewLabel;
@@ -73,18 +79,48 @@ class MainWindow: dfl.form.Form
 		menu.menuItems[0].menuItems[0].enabled(false);
 		menu.menuItems[1].menuItems[0].enabled(false);
 		PosetPainter painter = new PosetPainter(P);
+		//uint[][] ext = linearExtensionByDecomp(P, 7);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		panel1.drawDiagram(P, pos);
+		menu.menuItems[1].menuItems[0].enabled(true);
 		menu.menuItems[0].menuItems[0].enabled(true);
+		this.P = P;
+		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
 		return 0;
 	}
+	
+	
+	private int thRunMcCartin() {
+		if (!(this.P)) return 1;
+		statusBar.text("Przetwarzanie...");
+		parameterBox.enabled(false);
+		runButton.enabled(false);
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
+		this.result.length = 0;
+		uint k;
+		k = toUint(parameterBox.lines[0]);
+		this.result = linearExtensionByDecomp(P, k);
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos, this.result);
+		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[0].menuItems[0].enabled(true);
+		parameterBox.enabled(true);
+		runButton.enabled(true);
+		statusBar.text("Zakończono");
+		return 0;
+	}
+	
 	
 	this()
 	{
 		initializeMain();
 		
 		//@  Other main initialization code here.
+		parameterBox.textChanged ~= &parameterBox_textChanged;
+		runButton.click ~= &runButton_click;
 		//spawnButton.click ~= &spawnButton_click;
 		//exitButton.click ~= &exitButton_click;
 		//Graphics g = pictureBox1.createGraphics();
@@ -137,7 +173,7 @@ class MainWindow: dfl.form.Form
 	
 	
 	~this() {
-		if (openProcessing) delete openProcessing;
+		if (processing) delete processing;
 	}
 	
 	
@@ -154,14 +190,40 @@ class MainWindow: dfl.form.Form
 		statusBar.dock = dfl.all.DockStyle.BOTTOM;
 		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
 		statusBar.textAlign = dfl.all.ContentAlignment.BOTTOM_LEFT;
-		statusBar.bounds = dfl.all.Rect(0, 577, 800, 18);
+		statusBar.bounds = dfl.all.Rect(0, 582, 800, 18);
 		statusBar.parent = this;
 		//~DFL dfl.panel.Panel=controlPanel
-		controlPanel = new dfl.panel.Panel();
+		controlPanel = new Panel();
 		controlPanel.name = "controlPanel";
+		controlPanel.backColor = dfl.all.Color.empty;
 		controlPanel.dock = dfl.all.DockStyle.TOP;
-		controlPanel.bounds = dfl.all.Rect(0, 0, 800, 144);
+		controlPanel.bounds = dfl.all.Rect(0, 0, 800, 128);
 		controlPanel.parent = this;
+		//~DFL dfl.label.Label=parameterLabel
+		parameterLabel = new dfl.label.Label();
+		parameterLabel.name = "parameterLabel";
+		parameterLabel.text = "Parametr ustalony";
+		parameterLabel.bounds = dfl.all.Rect(80, 32, 96, 16);
+		parameterLabel.parent = controlPanel;
+		//~DFL dfl.textbox.TextBox=parameterBox
+		parameterBox = new dfl.textbox.TextBox();
+		parameterBox.name = "parameterBox";
+		parameterBox.enabled = false;
+		parameterBox.bounds = dfl.all.Rect(184, 24, 136, 24);
+		parameterBox.parent = controlPanel;
+		//~DFL dfl.button.Button=runButton
+		runButton = new dfl.button.Button();
+		runButton.name = "runButton";
+		runButton.enabled = false;
+		runButton.text = "Uruchom";
+		runButton.bounds = dfl.all.Rect(416, 24, 120, 24);
+		runButton.parent = controlPanel;
+		//~DFL dfl.label.Label=label2
+		label2 = new dfl.label.Label();
+		label2.name = "label2";
+		label2.text = "Algorytm McCartin";
+		label2.bounds = dfl.all.Rect(80, 0, 240, 16);
+		label2.parent = controlPanel;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
 		panel1.name = "panel1";
@@ -198,9 +260,16 @@ class MainWindow: dfl.form.Form
 		dialog.showDialog();
 		filename = dialog.fileName();
 		if ((!filename) || (filename.length == 0)) return;
-		if (openProcessing) delete openProcessing;
-		openProcessing = new Thread(&(this.thOpen));
-		openProcessing.start();
+		if (processing) delete processing;
+		processing = new Thread(&(this.thOpen));
+		processing.start();
+	}
+	
+	
+	private void runButton_click(Object sender, EventArgs ea) {
+		if (processing) delete processing;
+		processing = new Thread(&(this.thRunMcCartin));
+		processing.start();
 	}
 	
 	private void fileExitMenu_click(Object sender, EventArgs ea) {
@@ -211,6 +280,41 @@ class MainWindow: dfl.form.Form
 	private void dataMenuRandom_click(Object sender, EventArgs ea) {
 		RandomPoset dialog = new RandomPoset();
 		dialog.showDialog();
+		
+	}
+	
+	
+	private void parameterBox_textChanged(Object sender, EventArgs ea) {
+		char[] content;
+		bool good = true;
+		if (parameterBox.lines.length == 0) {
+			runButton.enabled(false);
+			return;
+		}
+		for (uint i = 0; i < parameterBox.lines[0].length; i++) {
+			if ((parameterBox.lines[0][i] >= '0') && (parameterBox.lines[0][i] <= '9')) {
+				char[] got = parameterBox.lines[0].dup;
+				if (got.length > 5) {
+					good = false;
+					break;
+				}
+				content ~= parameterBox.lines[0][i];
+			}
+			else good = false;
+		}
+		if (good) {
+			//char[] got = parameterBox.lines[0].dup;
+			if ((parameterBox.lines.length > 0) && (parameterBox.lines[0].length > 0)) runButton.enabled(true); else runButton.enabled(false);
+			return;
+		}
+		//writefln(content);
+		/+numberBox.clear;
+		
+		numberBox.lines[0] = content;
+		numberBox.refresh();
+		numberBox.redraw();+/
+		parameterBox.text = content;
+		if (content.length > 0) runButton.enabled(true); else runButton.enabled(false);
 	}
 	
 }

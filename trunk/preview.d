@@ -28,6 +28,7 @@ private {
 	
 	import structure;
 	static import std.string;
+	import std.random;
 }
 
 
@@ -133,13 +134,34 @@ class Preview: dfl.panel.Panel
 		maxX = maxX < this.width ? this.width : maxX;
 		maxY = maxY < this.height ? this.height : maxY;
 		//this.scrollSize(Size(this.width, this.height));
+		uint[] groups;
+		bool[] elmtInGroup;
+		groups.length = elmtInGroup.length = grid.length;
+		for (uint i = 0; i < groups.length; i++) groups[i] = uint.max;
+		for (uint i = 0; i < chains.length; i++) {
+			foreach (uint j; chains[i]) {
+				groups[j] = i;
+				elmtInGroup[j] = true;
+			}
+		}
+		Color[] grpColors;
+		grpColors.length = chains.length;
+		for (uint i = 0; i < grpColors.length; i++) grpColors[i] = Color.fromArgb(0, rand() % 256, rand() % 256, rand() % 256);
+		Pen[] grpPens;
+		grpPens.length = chains.length;
+		for (uint i = 0; i < grpPens.length; i++) grpPens[i] = new Pen(grpColors[i]);
 		MemoryGraphics g = new MemoryGraphics(maxX, maxY);
 		g.fillRectangle(Color.fromArgb(0, 255, 255, 255), 0, 0, g.width, g.height);
-		Color c = Color.fromArgb(0, 0, 0, 0);
-		Pen p = new Pen(c);
+		Color black = Color.fromArgb(0, 0, 0, 0);
+		Pen blackPen = new Pen(black);
+		Color c;
+		Pen p;
+		//uint[][] inlist = P.getInlist();
 		uint[][] outlist = P.getOutlist();
 		for (uint i = 0; i < outlist.length; i++) {
 			foreach (uint j; outlist[i]) {
+				if ((groups[i] == groups[j]) && (groups[i] != uint.max)) p = grpPens[groups[i]];
+				else p = blackPen;
 				g.drawLine(p, Point(grid[i][0], grid[i][1]), Point(grid[j][0], grid[j][1]));
 			}
 		}
@@ -153,6 +175,7 @@ class Preview: dfl.panel.Panel
 			//g.drawEllipse(p, Rect(grid[i][0] - 10, grid[i][1] - 5, 20, 10));
 			//for (uint j = 0; j < 5; j++) g.drawEllipse(wp, Rect(grid[i][0] - j, grid[i][1] - j, 2 * j, 2 * j));
 			Rect r = Rect(grid[i][0] - 15, grid[i][1] - 7, 30, 14);
+			if (groups[i] != uint.max) p = grpPens[groups[i]]; else p = blackPen;
 			g.drawRectangle(p, r);
 			g.fillRectangle(Color.fromArgb(0, 255, 255, 255), grid[i][0] - 14, grid[i][1] - 6, 28, 12);
 			//g.drawText(std.string.toString(i), font, c, r, frmt);
@@ -170,6 +193,7 @@ class Preview: dfl.panel.Panel
 			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1], 2, 2));
 			g.drawRectangle(wp, Rect(grid[i][0], grid[i][1] - 1, 2, 2));
 			g.drawRectangle(wp, Rect(grid[i][0] - 1, grid[i][1] - 1, 2, 2));
+			if (groups[i] != uint.max) c = grpColors[groups[i]]; else c = black;
 			g.drawText(std.string.toString(i), font, c, r, frmt);
 		}
 		g.flush();
