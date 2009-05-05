@@ -333,7 +333,7 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
  *          albo pusta tablica, jeżeli nie istnieje rozszerzenie liniowe z taką liczbą skoków 
  *          if there's not any optimal linear extension with such a number of jumps
  */
-uint[][] linearExtensionbyDecomp(Poset P, uint k = 0) {
+uint[][] linearExtensionByDecomp(Poset P, uint k = 0) {
 	if (k == 0) k = P.maxAccessible().length - 1;
 	if (P.getCurrency() == 0) return [];
 	bool[] gottenElmts;

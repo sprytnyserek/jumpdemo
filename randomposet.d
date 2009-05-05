@@ -9,6 +9,7 @@ private {
 	import dfl.all;
 	
 	import std.stdio;
+	import std.conv;
 }
 
 
@@ -43,7 +44,14 @@ class RandomPoset: dfl.form.Form
 		bool good = true;
 		if (numberBox.lines.length == 0) return;
 		for (uint i = 0; i < numberBox.lines[0].length; i++) {
-			if ((numberBox.lines[0][i] >= '0') && (numberBox.lines[0][i] <= '9')) content ~= numberBox.lines[0][i];
+			if ((numberBox.lines[0][i] >= '0') && (numberBox.lines[0][i] <= '9')) {
+				char[] got = numberBox.lines[0].dup;
+				if (got.length > 9) {
+					good = false;
+					break;
+				}
+				content ~= numberBox.lines[0][i];
+			}
 			else good = false;
 		}
 		if (good) return;

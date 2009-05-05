@@ -121,6 +121,7 @@ or see <http://www.gnu.org/licenses/>.
 		for (uint i = 0; i < elmts.length; i++) {
 			uint row = elmts[i].row;
 			//writefln(colCapacity.length);
+			// fragment kodu odpowiedzialny za wyrownywanie elementow posetu do srodka diagramu
 			if (rowCapacity[row - 1] < colCapacity.length) {
 				//writefln("rowCapacity: ", rowCapacity[row - 1]);
 				colCapacity[elmts[i].column - 1] -= 1;
