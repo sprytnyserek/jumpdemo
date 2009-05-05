@@ -58,11 +58,13 @@ class MainWindow: dfl.form.Form
 	dfl.textbox.TextBox parameterBox;
 	dfl.button.Button runButton;
 	dfl.label.Label label2;
+	dfl.button.Button stopButton;
 	//~Entice Designer variables end here.
 	Preview panel1;
 	Thread processing;
 	Poset P;
 	uint[][] result;
+	uint n;
 	char[] filename;
 	MenuItem mpop, mi;
 	Label previewLabel;
@@ -114,6 +116,26 @@ class MainWindow: dfl.form.Form
 	}
 	
 	
+	private int thRandomPoset() {
+		statusBar.text("Losowanie...");
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
+		parameterBox.text = "";
+		runButton.enabled(false);
+		Poset P;
+		P = Poset.randomPoset(n);
+		this.P = P;
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos);
+		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[0].menuItems[0].enabled(true);
+		parameterBox.enabled(true);
+		statusBar.text("Gotowy");
+		return 0;
+	}
+	
+	
 	this()
 	{
 		initializeMain();
@@ -121,6 +143,7 @@ class MainWindow: dfl.form.Form
 		//@  Other main initialization code here.
 		parameterBox.textChanged ~= &parameterBox_textChanged;
 		runButton.click ~= &runButton_click;
+		stopButton.click ~= &stopButton_click;
 		//spawnButton.click ~= &spawnButton_click;
 		//exitButton.click ~= &exitButton_click;
 		//Graphics g = pictureBox1.createGraphics();
@@ -224,6 +247,12 @@ class MainWindow: dfl.form.Form
 		label2.text = "Algorytm McCartin";
 		label2.bounds = dfl.all.Rect(80, 0, 240, 16);
 		label2.parent = controlPanel;
+		//~DFL dfl.button.Button=stopButton
+		stopButton = new dfl.button.Button();
+		stopButton.name = "stopButton";
+		stopButton.text = "Zatrzymaj";
+		stopButton.bounds = dfl.all.Rect(552, 24, 120, 24);
+		stopButton.parent = controlPanel;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
 		panel1.name = "panel1";
@@ -272,6 +301,14 @@ class MainWindow: dfl.form.Form
 		processing.start();
 	}
 	
+	
+	private void stopButton_click(Object sender, EventArgs ea) {
+		if (processing) delete processing;
+		menu.menuItems[0].menuItems[0].enabled(true);
+		menu.menuItems[1].menuItems[0].enabled(true);
+	}
+	
+	
 	private void fileExitMenu_click(Object sender, EventArgs ea) {
 		Application.exit();
 	}
@@ -280,7 +317,14 @@ class MainWindow: dfl.form.Form
 	private void dataMenuRandom_click(Object sender, EventArgs ea) {
 		RandomPoset dialog = new RandomPoset();
 		dialog.showDialog();
-		
+		if ((dialog.dialogResult == DialogResult.OK) && (dialog.numberBox.lines.length > 0)) {
+			n = toUint(dialog.numberBox.lines[0]);
+			if (processing) delete processing;
+			processing = new Thread(&(this.thRandomPoset));
+			processing.start();
+		}
+		dialog.dispose();
+		delete dialog;
 	}
 	
 	
