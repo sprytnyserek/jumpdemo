@@ -42,7 +42,10 @@ class RandomPoset: dfl.form.Form
 	private void numberBox_textChanged(Object sender, EventArgs ea) {
 		char[] content;
 		bool good = true;
-		if (numberBox.lines.length == 0) return;
+		if (numberBox.lines.length == 0) {
+			okButton.enabled(false);
+			return;
+		}
 		for (uint i = 0; i < numberBox.lines[0].length; i++) {
 			if ((numberBox.lines[0][i] >= '0') && (numberBox.lines[0][i] <= '9')) {
 				char[] got = numberBox.lines[0].dup;
@@ -54,7 +57,10 @@ class RandomPoset: dfl.form.Form
 			}
 			else good = false;
 		}
-		if (good) return;
+		if (good) {
+			if ((numberBox.lines.length > 0) && (numberBox.lines[0].length > 0)) okButton.enabled(true); else okButton.enabled(false);
+			return;
+		}
 		//writefln(content);
 		/+numberBox.clear;
 		
@@ -62,16 +68,21 @@ class RandomPoset: dfl.form.Form
 		numberBox.refresh();
 		numberBox.redraw();+/
 		numberBox.text = content;
+		if (content.length > 0) okButton.enabled(true); else okButton.enabled(false);
 	}
 	
 	
 	private void okButton_click(Object sender, EventArgs ea) {
-		this.dispose();
+		this.dialogResult = DialogResult.OK;
+		this.visible(false);
+		//this.dispose();
 	}
 	
 	
 	private void canButton_click(Object sender, EventArgs ea) {
-		this.dispose();
+		this.dialogResult = DialogResult.CANCEL;
+		this.visible(false);
+		//this.dispose();
 	}
 	
 	
@@ -91,6 +102,7 @@ class RandomPoset: dfl.form.Form
 		//~DFL dfl.button.Button=okButton
 		okButton = new dfl.button.Button();
 		okButton.name = "okButton";
+		okButton.enabled = false;
 		okButton.text = "OK";
 		okButton.bounds = dfl.all.Rect(16, 72, 96, 24);
 		okButton.parent = this;
