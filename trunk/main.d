@@ -89,6 +89,7 @@ class MainWindow: dfl.form.Form
 		this.P = P;
 		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
+		parameterBox.focus();
 		return 0;
 	}
 	
@@ -132,6 +133,7 @@ class MainWindow: dfl.form.Form
 		menu.menuItems[0].menuItems[0].enabled(true);
 		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
+		parameterBox.focus();
 		return 0;
 	}
 	
@@ -207,6 +209,18 @@ class MainWindow: dfl.form.Form
 		//~DFL Form
 		text = "FPT Jump Demo";
 		clientSize = dfl.all.Size(800, 600);
+		//~DFL dfl.label.Label=label2
+		label2 = new Label();
+		label2.name = "label2";
+		label2.text = "Algorytm McCartin";
+		label2.bounds = dfl.all.Rect(0, 0, 100, 23);
+		label2.parent = this;
+		//~DFL dfl.button.Button=stopButton
+		stopButton = new Button();
+		stopButton.name = "stopButton";
+		stopButton.text = "Zatrzymaj";
+		stopButton.bounds = dfl.all.Rect(552, 24, 123, 23);
+		stopButton.parent = this;
 		//~DFL dfl.label.Label=statusBar
 		statusBar = new Label();
 		statusBar.name = "statusBar";
@@ -218,7 +232,6 @@ class MainWindow: dfl.form.Form
 		//~DFL dfl.panel.Panel=controlPanel
 		controlPanel = new Panel();
 		controlPanel.name = "controlPanel";
-		controlPanel.backColor = dfl.all.Color.empty;
 		controlPanel.dock = dfl.all.DockStyle.TOP;
 		controlPanel.bounds = dfl.all.Rect(0, 0, 800, 128);
 		controlPanel.parent = this;
@@ -241,18 +254,6 @@ class MainWindow: dfl.form.Form
 		runButton.text = "Uruchom";
 		runButton.bounds = dfl.all.Rect(416, 24, 120, 24);
 		runButton.parent = controlPanel;
-		//~DFL dfl.label.Label=label2
-		label2 = new dfl.label.Label();
-		label2.name = "label2";
-		label2.text = "Algorytm McCartin";
-		label2.bounds = dfl.all.Rect(80, 0, 240, 16);
-		label2.parent = controlPanel;
-		//~DFL dfl.button.Button=stopButton
-		stopButton = new dfl.button.Button();
-		stopButton.name = "stopButton";
-		stopButton.text = "Zatrzymaj";
-		stopButton.bounds = dfl.all.Rect(552, 24, 120, 24);
-		stopButton.parent = controlPanel;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
 		panel1.name = "panel1";

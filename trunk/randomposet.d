@@ -32,6 +32,7 @@ class RandomPoset: dfl.form.Form
 		
 		//@  Other randomPoset initialization code here.
 		numberBox.textChanged ~= &numberBox_textChanged;
+		numberBox.visibleChanged ~= &numberBox_visibleChanged;
 		okButton.click ~= &okButton_click;
 		canButton.click ~= &canButton_click;
 		this.acceptButton(okButton);
@@ -83,6 +84,11 @@ class RandomPoset: dfl.form.Form
 		this.dialogResult = DialogResult.CANCEL;
 		this.visible(false);
 		//this.dispose();
+	}
+	
+	
+	private void numberBox_visibleChanged(Object sender, EventArgs ea) {
+		if (numberBox.visible == true) numberBox.focus();
 	}
 	
 	
