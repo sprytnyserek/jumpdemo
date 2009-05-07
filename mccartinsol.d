@@ -278,7 +278,8 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 	if (maxAccess.length > k + 1) return [];
 	if (maxAccess.length == k + 1) { // find the ladder decomposition
 		result = ladderDecomp(node.P, node.gottenElmts);
-		if (result.length > 0) result = node.chain ~ result;
+		// sprawdzenie, czy wynik rozkladu drabinowego ma oczekiwana dlugosc
+		if ((result.length > 0) && (result.length <= k + 1)) result = [node.chain] ~ result; else result.length = 0;
 	}
 	else {
 		uint[][] branchResult;
@@ -313,9 +314,32 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 			node.children[length - 1].chain[] = chain[];
 			node.children[length - 1].parent = node;
 			node.children[length - 1].P.setInOutList(inlist, outlist);
-			if (!contains(node.children[length - 1].gottenElmts, false)) branchResult = [chain];
-			else branchResult = chain ~ expEvaluate(node.children[length - 1], k - 1);
-			if ((result.length == 0) || ((branchResult.length > 0) && (branchResult.length < result.length))) {
+			//if (!contains(node.children[length - 1].gottenElmts, false)) branchResult = [chain];
+			if (!contains(node.children[length - 1].gottenElmts, false)) return [chain];
+/* ****$%%^&^*&()&^%&*(**^&%*(*^&%$^&(*^%$(*&%%^&&^(*&*(^^&&%^%^%**** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************** TU TRZEBA KONIECZNIE UWZGLEDNIC FAKT, ZE W ZADNEJ Z NIZSZYCH GALEZI NIE ZOSTANIE ZNALEZIONE ROZWIAZANIE ******* */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+/* ****************************************************************** */
+			else { // TEORETYCZNIE POPRAWIONE -- CO, JESLI k == 0 ??? NI MA ROZWIAZANIA Z DANYM OGRANICZENIEM
+				if (k > 0) {
+					branchResult = [chain] ~ expEvaluate(node.children[length - 1], k - 1);
+					if (branchResult.length == 1) branchResult.length = 0;
+				}
+				else branchResult.length = 0;
+			}
+			// TU JEST COS NIE TAK
+			if ((result.length == 0) || ((branchResult.length > 0) && (branchResult.length < k + 1) && (branchResult.length < result.length))) {
 				result.length = 0;
 				result.length = branchResult.length;
 				result = branchResult[];
@@ -333,8 +357,8 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
  *          albo pusta tablica, jeżeli nie istnieje rozszerzenie liniowe z taką liczbą skoków 
  *          if there's not any optimal linear extension with such a number of jumps
  */
-uint[][] linearExtensionByDecomp(Poset P, uint k = 0) {
-	if (k == 0) k = P.maxAccessible().length - 1;
+uint[][] linearExtensionByDecomp(Poset P, uint k = uint.max) {
+	if (k == uint.max) k = P.maxAccessible().length - 1;
 	if (P.getCurrency() == 0) return [];
 	bool[] gottenElmts;
 	uint[][] result;

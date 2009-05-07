@@ -198,6 +198,7 @@ class Preview: dfl.panel.Panel
 		}
 		g.flush();
 		Bitmap b = g.toBitmap();
+		this.scrollSize(b.size);
 		pictureBox1.image = b;
 		delete g;
 	}
