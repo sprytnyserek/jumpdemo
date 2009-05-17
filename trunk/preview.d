@@ -198,8 +198,15 @@ class Preview: dfl.panel.Panel
 		}
 		g.flush();
 		Bitmap b = g.toBitmap();
-		this.scrollSize(b.size);
+		this.scrollSize(Size(b.size.width + 20, b.size.height + 20));
+		pictureBox1.dock(DockStyle.FILL);
+		pictureBox1.redraw();
+		pictureBox1.refresh();
 		pictureBox1.image = b;
+		pictureBox1.redraw();
+		pictureBox1.refresh();
+		this.redraw();
+		this.refresh();
 		delete g;
 	}
 	

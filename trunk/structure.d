@@ -41,7 +41,7 @@ private {
  * Klasa posetu przechowywanego w postaci diagramu Hassego
  */
 class Poset {
-	private:
+	protected:
 	uint[][] inlist;
 	uint[][] outlist;
 	uint n;
@@ -379,7 +379,7 @@ class Poset {
 /**
  * Sprawdza, czy tablica $(I a) zawiera element $(I elmt)
  */
-private bool contains(uint[] a, uint elmt) {
+protected bool contains(uint[] a, uint elmt) {
 	uint i;
 	
 	while (a.length > i) {
@@ -392,7 +392,7 @@ private bool contains(uint[] a, uint elmt) {
 /**
  * Zamiana danej tablicy na tablicę bez powtórzeń
  */
-private uint[] unique(uint[] a) {
+protected uint[] unique(uint[] a) {
 	uint[] result;
 	
 	foreach (uint i; a) {
@@ -405,7 +405,7 @@ private uint[] unique(uint[] a) {
 /**
  * Znajduje pierwszy element w tablicy o podanej wartości i zwraca jego indeks
  */
-private uint index(uint[] a, uint elmt) {
+protected uint index(uint[] a, uint elmt) {
 	for (uint i = 0; i < a.length; i++) if (a[i] == elmt) return i;
 	return a.length;
 } // index
@@ -414,7 +414,7 @@ private uint index(uint[] a, uint elmt) {
 /**
  * Usuwa pierwszy element z tablicy o podanym indeksie
  */
-private void remove(inout uint[] a, uint i) {
+protected void remove(inout uint[] a, uint i) {
 	if (i < a.length) a = a[0 .. i] ~ a[(i + 1) .. $];
 } // remove
 
