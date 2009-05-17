@@ -51,4 +51,62 @@ class ArcPoset : Poset {
 		tail.length = 0;
 		head.length = 0;
 	}
+	
+	
+	uint indeg(uint v) {
+		if (v >= verts) return 0;
+		uint result;
+		for (uint i = 0; i < head.length; i++) if (head[i] == v) result++;
+		return result;
+	}
+	
+	
+	uint outdeg(uint v) {
+		if (v >= verts) return 0;
+		uint result;
+		for (uint i = 0; i < tail.length; i++) if (tail[i] == v) result++;
+		return result;
+	}
+	
+	
+	uint pindeg(uint v) {
+		if (v >= verts) return 0;
+		uint result;
+		for (uint i = 0; i < n; i++) if (head[i] == v) result++;
+		return result;
+	}
+	
+	
+	uint poutdeg(uint v) {
+		if (v >= verts) return 0;
+		uint result;
+		for (uint i = 0; i < n; i++) if (tail[i] == v) result++;
+		return result;
+	}
+	
+	
+	void setInOutList(uint[][] inlist, uint[][] outlist) {
+		super.setInOutList(inlist, outlist);
+		tail.length = head.length = n; // poczatkowo
+		for (uint i = 0; i < n; i++) {
+			tail[i] = 2 * i;
+			head[i] = tail[i] + 1;
+		}
+		verts = 2 * n;
+		for (uint i = 0; i < n; i++) {
+			foreach (uint j; outlist[i]) { // analogicznie mozna wykonac to samo po listach wejsciowych
+				tail.length = tail.length + 1;
+				head.length = head.length + 1;
+				tail[length - 1] = head[i];
+				head[length - 1] = tail[j];
+			}
+		}
+		compactize(); // todo
+	}
+	
+	
+	void compactize(bool extendedMode = false) {
+		
+	}
+	
 }

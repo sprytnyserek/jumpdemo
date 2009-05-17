@@ -43,6 +43,7 @@ import std.conv;
 /* start of internal imports */
 import structure;
 import mccartinsol;
+import syslosol;
 import preview;
 import painter;
 import randomposet;
@@ -198,7 +199,7 @@ class MainWindow: dfl.form.Form
 	
 	
 	~this() {
-		if (processing) delete processing;
+		if (processing !is null) delete processing;
 	}
 	
 	
@@ -209,26 +210,6 @@ class MainWindow: dfl.form.Form
 		//~DFL Form
 		text = "FPT Jump Demo";
 		clientSize = dfl.all.Size(800, 600);
-		//~DFL dfl.label.Label=label2
-		label2 = new Label();
-		label2.name = "label2";
-		label2.text = "Algorytm McCartin";
-		label2.bounds = dfl.all.Rect(0, 0, 100, 23);
-		label2.parent = this;
-		//~DFL dfl.button.Button=stopButton
-		stopButton = new Button();
-		stopButton.name = "stopButton";
-		stopButton.text = "Zatrzymaj";
-		stopButton.bounds = dfl.all.Rect(552, 24, 123, 23);
-		stopButton.parent = this;
-		//~DFL dfl.label.Label=statusBar
-		statusBar = new Label();
-		statusBar.name = "statusBar";
-		statusBar.dock = dfl.all.DockStyle.BOTTOM;
-		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
-		statusBar.textAlign = dfl.all.ContentAlignment.BOTTOM_LEFT;
-		statusBar.bounds = dfl.all.Rect(0, 582, 800, 18);
-		statusBar.parent = this;
 		//~DFL dfl.panel.Panel=controlPanel
 		controlPanel = new Panel();
 		controlPanel.name = "controlPanel";
@@ -236,24 +217,44 @@ class MainWindow: dfl.form.Form
 		controlPanel.bounds = dfl.all.Rect(0, 0, 800, 128);
 		controlPanel.parent = this;
 		//~DFL dfl.label.Label=parameterLabel
-		parameterLabel = new dfl.label.Label();
+		parameterLabel = new Label();
 		parameterLabel.name = "parameterLabel";
 		parameterLabel.text = "Parametr ustalony";
-		parameterLabel.bounds = dfl.all.Rect(80, 32, 96, 16);
+		parameterLabel.bounds = dfl.all.Rect(72, 24, 100, 23);
 		parameterLabel.parent = controlPanel;
-		//~DFL dfl.textbox.TextBox=parameterBox
-		parameterBox = new dfl.textbox.TextBox();
-		parameterBox.name = "parameterBox";
-		parameterBox.enabled = false;
-		parameterBox.bounds = dfl.all.Rect(184, 24, 136, 24);
-		parameterBox.parent = controlPanel;
+		//~DFL dfl.button.Button=stopButton
+		stopButton = new Button();
+		stopButton.name = "stopButton";
+		stopButton.text = "Zatrzymaj";
+		stopButton.bounds = dfl.all.Rect(552, 24, 123, 23);
+		stopButton.parent = controlPanel;
 		//~DFL dfl.button.Button=runButton
 		runButton = new dfl.button.Button();
 		runButton.name = "runButton";
 		runButton.enabled = false;
 		runButton.text = "Uruchom";
-		runButton.bounds = dfl.all.Rect(416, 24, 120, 24);
+		runButton.bounds = dfl.all.Rect(416, 24, 123, 23);
 		runButton.parent = controlPanel;
+		//~DFL dfl.label.Label=label2
+		label2 = new Label();
+		label2.name = "label2";
+		label2.text = "Algorytm McCartin";
+		label2.bounds = dfl.all.Rect(72, 0, 100, 23);
+		label2.parent = controlPanel;
+		//~DFL dfl.textbox.TextBox=parameterBox
+		parameterBox = new TextBox();
+		parameterBox.name = "parameterBox";
+		parameterBox.enabled = false;
+		parameterBox.bounds = dfl.all.Rect(176, 24, 120, 23);
+		parameterBox.parent = controlPanel;
+		//~DFL dfl.label.Label=statusBar
+		statusBar = new Label();
+		statusBar.name = "statusBar";
+		statusBar.dock = dfl.all.DockStyle.BOTTOM;
+		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
+		statusBar.textAlign = dfl.all.ContentAlignment.BOTTOM_LEFT;
+		statusBar.bounds = dfl.all.Rect(0, 576, 100, 23);
+		statusBar.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
 		panel1.name = "panel1";
@@ -304,9 +305,17 @@ class MainWindow: dfl.form.Form
 	
 	
 	private void stopButton_click(Object sender, EventArgs ea) {
-		if (processing) delete processing;
+		if (processing) {
+			processing.pause();
+			delete processing;
+			processing = null;
+		}
 		menu.menuItems[0].menuItems[0].enabled(true);
 		menu.menuItems[1].menuItems[0].enabled(true);
+		parameterBox.text = "";
+		parameterBox.enabled(true);
+		runButton.enabled(true);
+		statusBar.text("Przerwano");
 	}
 	
 	

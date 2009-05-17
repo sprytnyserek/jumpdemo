@@ -358,8 +358,8 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
  *          if there's not any optimal linear extension with such a number of jumps
  */
 uint[][] linearExtensionByDecomp(Poset P, uint k = uint.max) {
-	if (k == uint.max) k = P.maxAccessible().length - 1;
-	if (P.getCurrency() == 0) return [];
+	if (k == uint.max) k = P.maxAccessible().length - 1; // jezeli nie podano parametru, uzyj wylacznie rozkladu drabinowego
+	if ((!P) || (P.getCurrency() == 0)) return [];
 	bool[] gottenElmts;
 	uint[][] result;
 	TreeElmt topNode = new TreeElmt(P, []);
