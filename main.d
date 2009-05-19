@@ -73,15 +73,18 @@ class MainWindow: dfl.form.Form
 	
 	private int thOpen() {
 		P = new Poset();
+		statusBar.text("Otwieranie...");
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
 		P.fromFile(filename);
+		if (this.aP) delete this.aP;
+		this.aP = new ArcPoset();
+		this.aP.setInOutList(P.getInlist(), P.getOutlist());
 		//uint[][] result;
 		//result = ladderDecomp(P);
 		//char[] resultString = "";
 		//for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
 		//textBox1.text(resultString);
-		statusBar.text("Otwieranie...");
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
 		PosetPainter painter = new PosetPainter(P);
 		//uint[][] ext = linearExtensionByDecomp(P, 7);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
@@ -128,6 +131,7 @@ class MainWindow: dfl.form.Form
 		Poset P;
 		P = Poset.randomPoset(n);
 		this.P = P;
+		if (this.aP) delete this.aP;
 		this.aP = new ArcPoset();
 		this.aP.setInOutList(P.getInlist(), P.getOutlist());
 		PosetPainter painter = new PosetPainter(P);
@@ -251,12 +255,12 @@ class MainWindow: dfl.form.Form
 		parameterBox.bounds = dfl.all.Rect(176, 24, 120, 23);
 		parameterBox.parent = controlPanel;
 		//~DFL dfl.label.Label=statusBar
-		statusBar = new Label();
+		statusBar = new dfl.label.Label();
 		statusBar.name = "statusBar";
 		statusBar.dock = dfl.all.DockStyle.BOTTOM;
 		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
 		statusBar.textAlign = dfl.all.ContentAlignment.BOTTOM_LEFT;
-		statusBar.bounds = dfl.all.Rect(0, 576, 100, 23);
+		statusBar.bounds = dfl.all.Rect(0, 577, 800, 23);
 		statusBar.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
@@ -309,7 +313,7 @@ class MainWindow: dfl.form.Form
 	
 	private void stopButton_click(Object sender, EventArgs ea) {
 		if (processing) {
-			processing.pause();
+			//processing.pause();
 			delete processing;
 			processing = null;
 		}
