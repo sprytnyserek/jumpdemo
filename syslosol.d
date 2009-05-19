@@ -53,6 +53,38 @@ class ArcPoset : Poset {
 	}
 	
 	
+	uint getVerts() {
+		return verts;
+	}
+	
+	
+	uint[] getHead() {
+		return head.dup;
+	}
+	
+	
+	uint[] getTail() {
+		return tail.dup;
+	}
+	
+	
+	void setTailHead(uint[] tail, uint[] head, uint n) {
+		if ((tail.length == 0) || (tail.length != head.length)) throw new Exception("tail-head length mismatch");
+		if (n > head.length) throw new Exception("poset arcs overloaded");
+		this.tail.length = 0;
+		this.head.length = 0;
+		this.tail = tail[];
+		this.head = head[];
+		uint max = 0;
+		for (uint i = 0; i < head.length; i++) {
+			if (head[i] > max) max = head[i];
+			if (tail[i] > max) max = tail[i];
+		}
+		verts = max + 1;
+		this.n = n;
+	}
+	
+	
 	uint indeg(uint v) {
 		if (v >= verts) return 0;
 		uint result;
@@ -102,11 +134,101 @@ class ArcPoset : Poset {
 			}
 		}
 		compactize(); // todo
+		writefln("verts: ", verts);
+		for (uint i = 0; i < head.length; i++) {
+			if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
+			writefln(tail[i], " ", head[i]);
+		}
 	}
 	
 	
+	/**
+	 * Operacja zwierania diagramu łukowego posetu
+	 */
 	void compactize(bool extendedMode = false) {
+		// redukcja zrodel
+		uint[] src;
+		for (uint i = 0; i < n; i++) {
+			if (indeg(tail[i]) == 0) src ~= i;
+		}
+		if (src.length > 1) for (uint i = 0; i < src.length - 1; i++) {
+			uint c, d;
+			if (tail[src[i]] < tail[src[i + 1]]) {
+				c = tail[src[i]];
+				d = tail[src[i + 1]];
+				tail[src[i + 1]] = c;
+			}
+			else {
+				d = tail[src[i]];
+				c = tail[src[i + 1]];
+				tail[src[i]] = c;
+			}
+			// przenumerowanie wierzcholkow (d zostal usuniety)
+			for (uint j = 0; j < head.length; j++) {
+				head[j] = head[j] > d ? head[j] - 1 : head[j];
+				tail[j] = tail[j] > d ? tail[j] - 1 : tail[j];
+			}
+			verts -= 1;
+		}
+		// redukcja odplywow
+		uint[] snk;
+		for (uint i = 0; i < n; i++) {
+			if (outdeg(head[i]) == 0) snk ~= i;
+		}
+		if (snk.length > 1) for (uint i = 0; i < snk.length - 1; i++) {
+			uint c, d;
+			if (head[snk[i]] < head[snk[i + 1]]) {
+				c = head[snk[i]];
+				d = head[snk[i + 1]];
+				head[snk[i + 1]] = c;
+			}
+			else {
+				d = head[snk[i]];
+				c = head[snk[i + 1]];
+				head[snk[i]] = c;
+			}
+			// przenumerowanie wierzcholkow (d zostal usuniety)
+			for (uint j = 0; j < head.length; j++) {
+				head[j] = head[j] > d ? head[j] - 1 : head[j];
+				tail[j] = tail[j] > d ? tail[j] - 1 : tail[j];
+			}
+			verts -= 1;
+		}
+		// redukcja lukow pozornych
+		uint i = n;
+		while (i < head.length) {
+			if ((indeg(head[i]) <= 1) || (outdeg(tail[i]) <= 1)) {
+				uint c, d;
+				c = head[i] < tail[i] ? head[i] : tail[i];
+				d = head[i] < tail[i] ? tail[i] : head[i];
+				for (uint j = 0; j < head.length; j++) {
+					head[j] = head[j] == d ? c : head[j];
+					tail[j] = tail[j] == d ? c : tail[j];
+				}
+				head = head[0 .. i] ~ head[(i + 1) .. $];
+				tail = tail[0 .. i] ~ tail[(i + 1) .. $];
+				for (uint j = 0; j < head.length; j++) {
+					head[j] = head[j] > d ? head[j] - 1 : head[j];
+					tail[j] = tail[j] > d ? tail[j] - 1 : tail[j];
+				}
+				verts -= 1;
+				continue;
+			}
+			i++;
+		}
+		if (extendedMode) {
+			// bezposredni test na sciaganie luku pozornego
+			// jezeli sciagniecie luku pozornego nie spowoduje pokrywania sie dwoch innych lukow w calym diagramie - ok
+			
+		}
+	}
+	
+	
+	void topologize() {
 		
 	}
 	
 }
+
+
+

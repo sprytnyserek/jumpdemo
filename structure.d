@@ -253,7 +253,7 @@ class Poset {
 	 * Ustawienie list elementów pokrywanych i pokrywających
 	 */
 	void setInOutList(uint[][] inlist,uint[][] outlist) {
-		if ((inlist.length == 0) || (inlist.length != inlist.length)) throw new Exception("inlist-outlist length mismatch");
+		if ((inlist.length == 0) || (inlist.length != outlist.length)) throw new Exception("inlist-outlist length mismatch");
 		this.inlist.length = 0;
 		this.outlist.length = 0;
 		this.inlist = inlist[];
