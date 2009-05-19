@@ -133,11 +133,17 @@ class ArcPoset : Poset {
 				head[length - 1] = tail[j];
 			}
 		}
-		compactize(); // todo
-		writefln("verts: ", verts);
-		for (uint i = 0; i < head.length; i++) {
-			if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
-			writefln(tail[i], " ", head[i]);
+		compactize();
+		topologize();
+		debug {
+			writefln("------------------");
+			writefln("Arc reprezentation");
+			writefln("------------------");
+			writefln("verts: ", verts);
+			for (uint i = 0; i < head.length; i++) {
+				if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
+				writefln(tail[i], " ", head[i]);
+			}
 		}
 	}
 	
@@ -224,8 +230,33 @@ class ArcPoset : Poset {
 	}
 	
 	
+	void topologizeAt(uint i, inout uint[] result, inout uint nr, inout bool[] numbered) {
+		numbered[i] = true;
+		for (uint j = 0; j < tail.length; j++) {
+			if ((head[j] == i) && (!numbered[tail[j]])) {
+				topologizeAt(tail[j], result, nr, numbered);
+			}
+		}
+		result[i] = nr++;
+	}
+	
+	
 	void topologize() {
-		
+		uint[] result;
+		result.length = verts;
+		uint begin;
+		for (uint i = 0; i < head.length; i++) if (outdeg(head[i]) == 0) {
+			begin = head[i];
+			break;
+		}
+		uint nr = 0;
+		bool[] numbered;
+		numbered.length = verts;
+		topologizeAt(begin, result, nr, numbered);
+		for (uint i = 0; i < head.length; i++) {
+			tail[i] = result[tail[i]];
+			head[i] = result[head[i]];
+		}
 	}
 	
 }
