@@ -64,6 +64,7 @@ class MainWindow: dfl.form.Form
 	Preview panel1;
 	Thread processing;
 	Poset P;
+	ArcPoset aP;
 	uint[][] result;
 	uint n;
 	char[] filename;
@@ -127,6 +128,8 @@ class MainWindow: dfl.form.Form
 		Poset P;
 		P = Poset.randomPoset(n);
 		this.P = P;
+		this.aP = new ArcPoset();
+		this.aP.setInOutList(P.getInlist(), P.getOutlist());
 		PosetPainter painter = new PosetPainter(P);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		panel1.drawDiagram(P, pos);
