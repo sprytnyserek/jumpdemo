@@ -68,6 +68,40 @@ class ArcPoset : Poset {
 	}
 	
 	
+	uint[] covering(uint x) {
+		if (x >= tail.length) return [];
+		uint[] result;
+		uint[][] inarc = getInarc(), outarc = getOutarc();
+		uint a = tail[x], b = head[x];
+		foreach (uint i; outarc[b]) {
+			if (i < n) {
+				if (!contains(result, i)) result ~= i;
+			}
+			else {
+				result ~= covering(i);
+			}
+		}
+		return result;
+	}
+	
+	
+	uint[] covered(uint x) {
+		if (x >= tail.length) return [];
+		uint[] result;
+		uint[][] inarc = getInarc(), outarc = getOutarc();
+		uint a = tail[x], b = head[x];
+		foreach (uint i; inarc[a]) {
+			if (i < n) {
+				if (!contains(result, i)) result ~= i;
+			}
+			else {
+				result ~= covered(i);
+			}
+		}
+		return result;
+	}
+	
+	
 	void setTailHead(uint[] tail, uint[] head, uint n) {
 		if ((tail.length == 0) || (tail.length != head.length)) throw new Exception("tail-head length mismatch");
 		if (n > head.length) throw new Exception("poset arcs overloaded");
@@ -82,6 +116,15 @@ class ArcPoset : Poset {
 		}
 		verts = max + 1;
 		this.n = n;
+		uint[][] inarc = getInarc(), outarc = getOutarc();
+		inlist.length = 0;
+		outlist.length = 0;
+		inlist.length = n;
+		outlist.length = n;
+		for (uint i = 0; i < n; i++) { // po wszystkich lukach rzeczywistych
+			inlist[i] = covered(i);
+			outlist[i] = covering(i);
+		}
 	}
 	
 	
@@ -136,6 +179,8 @@ class ArcPoset : Poset {
 		compactize();
 		topologize();
 		debug {
+			/+writefln("inlist: ", this.inlist);
+			writefln("outlist: ", this.outlist);
 			writefln("------------------");
 			writefln("Arc reprezentation");
 			writefln("------------------");
@@ -144,6 +189,26 @@ class ArcPoset : Poset {
 				if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
 				writefln(tail[i], " ", head[i]);
 			}
+			writefln("inarc: ", this.getInarc());
+			writefln("outarc: ", this.getOutarc());+/
+			uint[] head, tail;
+			head.length = this.head.length;
+			tail.length = this.tail.length;
+			head = this.head[];
+			tail = this.tail[];
+			this.setTailHead(tail, head, n);
+			writefln("inlist: ", this.inlist);
+			writefln("outlist: ", this.outlist);
+			writefln("------------------");
+			writefln("Arc reprezentation");
+			writefln("------------------");
+			writefln("verts: ", verts);
+			for (uint i = 0; i < head.length; i++) {
+				if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
+				writefln(tail[i], " ", head[i]);
+			}
+			writefln("inarc: ", this.getInarc());
+			writefln("outarc: ", this.getOutarc());
 		}
 	}
 	
@@ -230,7 +295,7 @@ class ArcPoset : Poset {
 	}
 	
 	
-	void topologizeAt(uint i, inout uint[] result, inout uint nr, inout bool[] numbered) {
+	private void topologizeAt(uint i, inout uint[] result, inout uint nr, inout bool[] numbered) {
 		numbered[i] = true;
 		for (uint j = 0; j < tail.length; j++) {
 			if ((head[j] == i) && (!numbered[tail[j]])) {
@@ -259,7 +324,61 @@ class ArcPoset : Poset {
 		}
 	}
 	
+	
+	uint[][] getInarc() {
+		uint[][] result;
+		result.length = verts;
+		for (uint i = 0; i < head.length; i++) {
+			result[head[i]] ~= i;
+		}
+		return result;
+	}
+	
+	
+	uint[][] getOutarc() {
+		uint[][] result;
+		result.length = verts;
+		for (uint i = 0; i < tail.length; i++) {
+			result[tail[i]] ~= i;
+		}
+		return result;
+	}
+	
+	
+	static synchronized ArcPoset randomPosetbyArc(uint n = 0, uint dn = 0) { // n == 0 => losowa liczba elementow (lukow rzeczywistych); dn == 0 => poset N-wolny
+		ArcPoset P = new ArcPoset();
+		
+		
+		return P;
+	}
+	
 }
 
 
+void optLineExt(ArcPoset D, inout uint[][] Lopt) {
+	/* subroutines as in Syslo' solution */
+	/* S, W - queues */
+	void remove(uint path, ArcPoset D, inout uint[] S, inout uint[] W, inout bool[] usedArcs = []) { // D is inout object
+		if (!D) throw new Exception("Fatal: inout object of ArcPoset become null during processing");
+		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
+		
+	}
+	
+	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
+		
+	}
+	
+	uint[] L, S, W;
+	uint r = uint.max;
+	bool[] usedArcs;
+	//usedArcs.length = head.length;
+	
+}
 
+
+uint[][] arcOptLineExt(ArcPoset P) {
+	if (!P) return [];
+	uint[][] result;
+	
+	return result;
+}
