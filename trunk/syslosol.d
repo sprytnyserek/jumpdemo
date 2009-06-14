@@ -355,7 +355,7 @@ class ArcPoset : Poset {
 }
 
 
-void optLineExt(ArcPoset D, inout uint[][] Lopt) {
+private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	/* subroutines as in Syslo' solution */
 	/* S, W - queues */
 	void remove(uint path, ArcPoset D, inout uint[] S, inout uint[] W, inout bool[] usedArcs = []) { // D is inout object
