@@ -255,7 +255,7 @@ class MainWindow: dfl.form.Form
 		parameterBox.bounds = dfl.all.Rect(176, 24, 120, 23);
 		parameterBox.parent = controlPanel;
 		//~DFL dfl.label.Label=statusBar
-		statusBar = new dfl.label.Label();
+		statusBar = new Label();
 		statusBar.name = "statusBar";
 		statusBar.dock = dfl.all.DockStyle.BOTTOM;
 		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
