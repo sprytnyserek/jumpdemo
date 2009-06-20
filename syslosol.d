@@ -42,14 +42,14 @@ class ArcPoset : Poset {
 	// uint[][] inlist, outlist; -- derived
 	// uint n; -- derived
 	uint verts; // number of vertices in arc reprezentation (always equal or more than n + 1)
-	uint[] tail, head; // tail and head of i-arc in arc reprezentation; (i < n) => i-poset arc; otherwise i-dummy arc
+	uint[uint] tail, head; // tail and head of i-arc in arc reprezentation; (i < n) => i-poset arc; otherwise i-dummy arc
 	
 	public:
 	this() {
 		super();
 		verts = 1; // vertex that is source'n'sink in one
-		tail.length = 0;
-		head.length = 0;
+		//tail.length = 0;
+		//head.length = 0;
 	}
 	
 	
@@ -58,18 +58,27 @@ class ArcPoset : Poset {
 	}
 	
 	
-	uint[] getHead() {
-		return head.dup;
+	uint[uint] getHead() {
+		uint[uint] result;
+		foreach (uint key, uint value; head) {
+			result[key] = value;
+		}
+		return result;
 	}
 	
 	
-	uint[] getTail() {
-		return tail.dup;
+	uint[uint] getTail() {
+		uint[uint] result;
+		foreach (uint key, uint value; tail) {
+			result[key] = value;
+		}
+		return result;
 	}
 	
 	
 	uint[] covering(uint x) {
-		if (x >= tail.length) return [];
+		//if (x >= tail.length) return [];
+		if ((!contains(tail.keys, x)) || (!contains(head.keys, x))) return [];
 		uint[] result;
 		uint[][] inarc = getInarc(), outarc = getOutarc();
 		uint a = tail[x], b = head[x];
@@ -86,7 +95,8 @@ class ArcPoset : Poset {
 	
 	
 	uint[] covered(uint x) {
-		if (x >= tail.length) return [];
+		//if (x >= tail.length) return [];
+		if ((!contains(tail.keys, x)) || (!contains(head.keys, x))) return [];
 		uint[] result;
 		uint[][] inarc = getInarc(), outarc = getOutarc();
 		uint a = tail[x], b = head[x];
@@ -102,17 +112,29 @@ class ArcPoset : Poset {
 	}
 	
 	
-	void setTailHead(uint[] tail, uint[] head, uint n) {
+	void setTailHead(uint[uint] tail, uint[uint] head, uint n) {
 		if ((tail.length == 0) || (tail.length != head.length)) throw new Exception("tail-head length mismatch");
 		if (n > head.length) throw new Exception("poset arcs overloaded");
-		this.tail.length = 0;
-		this.head.length = 0;
-		this.tail = tail[];
-		this.head = head[];
+		//this.tail.length = 0;
+		//this.head.length = 0;
+		//delete this.tail;
+		//delete this.head;
+		this.tail = null;
+		this.head = null;
+		//this.tail = tail;
+		//this.head = head;
+		foreach (uint key, uint value; tail) this.tail[key] = value;
+		foreach (uint key, uint value; head) this.head[key] = value;
 		uint max = 0;
-		for (uint i = 0; i < head.length; i++) {
+		/+for (uint i = 0; i < head.length; i++) {
 			if (head[i] > max) max = head[i];
 			if (tail[i] > max) max = tail[i];
+		}+/
+		foreach (uint key, uint value; head) {
+			if (value > max) max = value;
+		}
+		foreach (uint key, uint value; tail) {
+			if (value > max) max = value;
 		}
 		verts = max + 1;
 		this.n = n;
@@ -121,9 +143,12 @@ class ArcPoset : Poset {
 		outlist.length = 0;
 		inlist.length = n;
 		outlist.length = n;
-		for (uint i = 0; i < n; i++) { // po wszystkich lukach rzeczywistych
-			inlist[i] = covered(i);
-			outlist[i] = covering(i);
+		//for (uint i = 0; i < n; i++) { // po wszystkich lukach rzeczywistych
+		foreach (uint key, uint value; head) { /* wprowadza niejednoznacznosc zapisu, gdy luki sa usuwane */
+			if (key < n) {
+				inlist[key] = covered(key);
+				outlist[key] = covering(key);
+			}
 		}
 	}
 	
@@ -131,7 +156,8 @@ class ArcPoset : Poset {
 	uint indeg(uint v) {
 		if (v >= verts) return 0;
 		uint result;
-		for (uint i = 0; i < head.length; i++) if (head[i] == v) result++;
+		//for (uint i = 0; i < head.length; i++) if (head[i] == v) result++;
+		foreach (uint key, uint value; head) if (value == v) result++;
 		return result;
 	}
 	
@@ -139,7 +165,8 @@ class ArcPoset : Poset {
 	uint outdeg(uint v) {
 		if (v >= verts) return 0;
 		uint result;
-		for (uint i = 0; i < tail.length; i++) if (tail[i] == v) result++;
+		//for (uint i = 0; i < tail.length; i++) if (tail[i] == v) result++;
+		foreach (uint key, uint value; tail) if (value == v) result++;
 		return result;
 	}
 	
@@ -147,7 +174,8 @@ class ArcPoset : Poset {
 	uint pindeg(uint v) {
 		if (v >= verts) return 0;
 		uint result;
-		for (uint i = 0; i < n; i++) if (head[i] == v) result++;
+		//for (uint i = 0; i < n; i++) if (head[i] == v) result++;
+		foreach (uint key, uint value; head) if ((key < n) && (value == v)) result++;
 		return result;
 	}
 	
@@ -155,30 +183,44 @@ class ArcPoset : Poset {
 	uint poutdeg(uint v) {
 		if (v >= verts) return 0;
 		uint result;
-		for (uint i = 0; i < n; i++) if (tail[i] == v) result++;
+		//for (uint i = 0; i < n; i++) if (tail[i] == v) result++;
+		foreach (uint key, uint value; tail) if ((key < n) && (value == v)) result++;
 		return result;
 	}
 	
 	
 	void setInOutList(uint[][] inlist, uint[][] outlist) {
 		super.setInOutList(inlist, outlist);
-		tail.length = head.length = n; // poczatkowo
+		//tail.length = head.length = n; // poczatkowo
+		tail = null;
+		head = null;
 		for (uint i = 0; i < n; i++) {
 			tail[i] = 2 * i;
 			head[i] = tail[i] + 1;
 		}
 		verts = 2 * n;
+		uint k = n;
 		for (uint i = 0; i < n; i++) {
 			foreach (uint j; outlist[i]) { // analogicznie mozna wykonac to samo po listach wejsciowych
-				tail.length = tail.length + 1;
-				head.length = head.length + 1;
-				tail[length - 1] = head[i];
-				head[length - 1] = tail[j];
+				//tail.length = tail.length + 1;
+				//head.length = head.length + 1;
+				tail[k] = head[i];
+				head[k++] = tail[j];
 			}
 		}
 		compactize();
 		topologize();
 		debug {
+			writefln("------------------");
+			writefln("Arc reprezentation");
+			writefln("------------------");
+			writefln("verts: ", verts);
+			foreach (uint i; this.head.keys) {
+				if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
+				writefln(this.tail[i], " ", this.head[i]);
+			}
+		}
+		/+debug {
 			/+writefln("inlist: ", this.inlist);
 			writefln("outlist: ", this.outlist);
 			writefln("------------------");
@@ -191,25 +233,28 @@ class ArcPoset : Poset {
 			}
 			writefln("inarc: ", this.getInarc());
 			writefln("outarc: ", this.getOutarc());+/
-			uint[] head, tail;
-			head.length = this.head.length;
-			tail.length = this.tail.length;
-			head = this.head[];
-			tail = this.tail[];
-			this.setTailHead(tail, head, n);
-			writefln("inlist: ", this.inlist);
-			writefln("outlist: ", this.outlist);
+			uint[uint] head, tail;
+			//head.length = this.head.length;
+			//tail.length = this.tail.length;
+			/+head = this.head;
+			tail = this.tail;+/
 			writefln("------------------");
 			writefln("Arc reprezentation");
 			writefln("------------------");
 			writefln("verts: ", verts);
-			for (uint i = 0; i < head.length; i++) {
+			//for (uint i = 0; i < head.length; i++) {
+			foreach (uint i; this.head.keys) {
 				if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
-				writefln(tail[i], " ", head[i]);
+				writefln(this.tail[i], " ", this.head[i]);
 			}
 			writefln("inarc: ", this.getInarc());
 			writefln("outarc: ", this.getOutarc());
-		}
+			foreach (uint key, uint value; this.head) head[key] = value;
+			foreach (uint key, uint value; this.tail) tail[key] = value;
+			this.setTailHead(tail, head, n);
+			writefln("inlist: ", this.inlist);
+			writefln("outlist: ", this.outlist);
+		}+/
 	}
 	
 	
@@ -219,9 +264,11 @@ class ArcPoset : Poset {
 	void compactize(bool extendedMode = false) {
 		// redukcja zrodel
 		uint[] src;
-		for (uint i = 0; i < n; i++) {
+		/+for (uint i = 0; i < n; i++) {
 			if (indeg(tail[i]) == 0) src ~= i;
-		}
+		}+/
+		foreach (uint key, uint value; tail) if (indeg(value) == 0) src ~= key;
+		//debug writefln("sources: ", src);
 		if (src.length > 1) for (uint i = 0; i < src.length - 1; i++) {
 			uint c, d;
 			if (tail[src[i]] < tail[src[i + 1]]) {
@@ -235,17 +282,23 @@ class ArcPoset : Poset {
 				tail[src[i]] = c;
 			}
 			// przenumerowanie wierzcholkow (d zostal usuniety)
-			for (uint j = 0; j < head.length; j++) {
+			/+for (uint j = 0; j < head.length; j++) {
 				head[j] = head[j] > d ? head[j] - 1 : head[j];
 				tail[j] = tail[j] > d ? tail[j] - 1 : tail[j];
+			}+/
+			foreach (uint key, uint value; head) {
+				head[key] = head[key] > d ? head[key] - 1 : head[key];
+				tail[key] = tail[key] > d ? tail[key] - 1 : tail[key];
 			}
 			verts -= 1;
 		}
 		// redukcja odplywow
 		uint[] snk;
-		for (uint i = 0; i < n; i++) {
+		/+for (uint i = 0; i < n; i++) {
 			if (outdeg(head[i]) == 0) snk ~= i;
-		}
+		}+/
+		foreach (uint key, uint value; head) if (outdeg(value) == 0) snk ~= key;
+		//debug writefln("sinks:", snk);
 		if (snk.length > 1) for (uint i = 0; i < snk.length - 1; i++) {
 			uint c, d;
 			if (head[snk[i]] < head[snk[i + 1]]) {
@@ -259,14 +312,18 @@ class ArcPoset : Poset {
 				head[snk[i]] = c;
 			}
 			// przenumerowanie wierzcholkow (d zostal usuniety)
-			for (uint j = 0; j < head.length; j++) {
+			/+for (uint j = 0; j < head.length; j++) {
 				head[j] = head[j] > d ? head[j] - 1 : head[j];
 				tail[j] = tail[j] > d ? tail[j] - 1 : tail[j];
+			}+/
+			foreach (uint key, uint value; tail) {
+				head[key] = head[key] > d ? head[key] - 1 : head[key];
+				tail[key] = tail[key] > d ? tail[key] - 1 : tail[key];
 			}
 			verts -= 1;
 		}
 		// redukcja lukow pozornych
-		uint i = n;
+		/+uint i = n;
 		while (i < head.length) {
 			if ((indeg(head[i]) <= 1) || (outdeg(tail[i]) <= 1)) {
 				uint c, d;
@@ -291,13 +348,32 @@ class ArcPoset : Poset {
 			// bezposredni test na sciaganie luku pozornego
 			// jezeli sciagniecie luku pozornego nie spowoduje pokrywania sie dwoch innych lukow w calym diagramie - ok
 			
+		}+/
+		foreach (uint i; head.keys) {
+			if ((i >= n) && ((indeg(head[i]) <= 1) || (outdeg(tail[i]) <= 1))) {
+				uint c, d;
+				c = head[i] < tail[i] ? head[i] : tail[i];
+				d = head[i] < tail[i] ? tail[i] : head[i];
+				foreach (uint j; head.keys) {
+					head[j] = head[j] == d ? c : head[j];
+					tail[j] = tail[j] == d ? c : tail[j];
+				}
+				head.remove(i);
+				tail.remove(i);
+				foreach (uint j; head.keys) {
+					head[j] = head[j] > d ? head[j] - 1 : head[j];
+					tail[j] = tail[j] > d ? tail[j] - 1 : tail[j];
+				}
+				verts -= 1;
+			}
 		}
 	}
 	
 	
 	private void topologizeAt(uint i, inout uint[] result, inout uint nr, inout bool[] numbered) {
 		numbered[i] = true;
-		for (uint j = 0; j < tail.length; j++) {
+		//for (uint j = 0; j < tail.length; j++) {
+		foreach (uint j; tail.keys) {
 			if ((head[j] == i) && (!numbered[tail[j]])) {
 				topologizeAt(tail[j], result, nr, numbered);
 			}
@@ -310,7 +386,8 @@ class ArcPoset : Poset {
 		uint[] result;
 		result.length = verts;
 		uint begin;
-		for (uint i = 0; i < head.length; i++) if (outdeg(head[i]) == 0) {
+		//for (uint i = 0; i < head.length; i++) if (outdeg(head[i]) == 0) {
+		foreach (uint i; head.keys) if (outdeg(head[i]) == 0) {
 			begin = head[i];
 			break;
 		}
@@ -318,7 +395,9 @@ class ArcPoset : Poset {
 		bool[] numbered;
 		numbered.length = verts;
 		topologizeAt(begin, result, nr, numbered);
-		for (uint i = 0; i < head.length; i++) {
+		//for (uint i = 0; i < head.length; i++) {
+		//debug writefln(result);
+		foreach (uint i; head.keys) {
 			tail[i] = result[tail[i]];
 			head[i] = result[head[i]];
 		}
@@ -328,8 +407,11 @@ class ArcPoset : Poset {
 	uint[][] getInarc() {
 		uint[][] result;
 		result.length = verts;
-		for (uint i = 0; i < head.length; i++) {
+		/+for (uint i = 0; i < head.length; i++) {
 			result[head[i]] ~= i;
+		}+/
+		foreach (uint key, uint value; head) {
+			result[value] ~= key;
 		}
 		return result;
 	}
@@ -338,8 +420,11 @@ class ArcPoset : Poset {
 	uint[][] getOutarc() {
 		uint[][] result;
 		result.length = verts;
-		for (uint i = 0; i < tail.length; i++) {
+		/+for (uint i = 0; i < tail.length; i++) {
 			result[tail[i]] ~= i;
+		}+/
+		foreach (uint key, uint value; tail) {
+			result[value] ~= key;
 		}
 		return result;
 	}
