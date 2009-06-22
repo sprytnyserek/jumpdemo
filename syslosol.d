@@ -90,7 +90,7 @@ class ArcPoset : Poset {
 				result ~= covering(i);
 			}
 		}
-		return result;
+		return result.sort;
 	}
 	
 	
@@ -108,7 +108,7 @@ class ArcPoset : Poset {
 				result ~= covered(i);
 			}
 		}
-		return result;
+		return result.sort;
 	}
 	
 	
@@ -141,6 +141,8 @@ class ArcPoset : Poset {
 		uint[][] inarc = getInarc(), outarc = getOutarc();
 		inlist.length = 0;
 		outlist.length = 0;
+		//debug writefln(this.inlist);
+		//debug writefln(this.outlist);
 		inlist.length = n;
 		outlist.length = n;
 		//for (uint i = 0; i < n; i++) { // po wszystkich lukach rzeczywistych
@@ -150,6 +152,8 @@ class ArcPoset : Poset {
 				outlist[key] = covering(key);
 			}
 		}
+		//debug writefln(this.inlist);
+		//debug writefln(this.outlist);
 	}
 	
 	
@@ -211,14 +215,22 @@ class ArcPoset : Poset {
 		compactize();
 		topologize();
 		debug {
+			writefln("inlist: ", this.inlist);
+			writefln("outlist: ", this.outlist);
 			writefln("------------------");
 			writefln("Arc reprezentation");
 			writefln("------------------");
 			writefln("verts: ", verts);
 			foreach (uint i; this.head.keys) {
-				if (i < n) writef("rzeczywisty: "); else writef("pozorny: ");
+				if (i < n) writef(i, ": rzeczywisty: "); else writef("pozorny: ");
 				writefln(this.tail[i], " ", this.head[i]);
 			}
+			uint[uint] tail, head;
+			foreach (uint key, uint value; this.head) head[key] = value;
+			foreach (uint key, uint value; this.tail) tail[key] = value;
+			this.setTailHead(tail, head, n);
+			writefln("inlist: ", this.inlist);
+			writefln("outlist: ", this.outlist);
 		}
 		/+debug {
 			/+writefln("inlist: ", this.inlist);
@@ -443,10 +455,28 @@ class ArcPoset : Poset {
 private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	/* subroutines as in Syslo' solution */
 	/* S, W - queues */
-	void remove(uint path, ArcPoset D, inout uint[] S, inout uint[] W, inout bool[] usedArcs = []) { // D is inout object
+	void remove(uint path, ArcPoset D, inout uint[] S, inout uint[] W) { // D is inout object
 		if (!D) throw new Exception("Fatal: inout object of ArcPoset become null during processing");
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
-		
+		/* input data validation */
+		uint a = path;
+		if (!D.tail[a]) throw new Exception("No such arc");
+		uint ta = D.tail[a];
+		while (D.indeg(ta) > 0) {
+			if (!((D.indeg(ta) == 1) && (D.pindeg(ta) == 1) && (D.outdeg(ta) >= 1) && (D.poutdeg(ta) >= 1))) throw new Exception("Not a greedy path");
+			a = inarc[ta][0];
+			ta = D.tail[a];
+		}
+		/* end of input data validation */
+		a = path;
+		ta = D.tail[a];
+		uint ha = D.head[a];
+		uint poutdeg, outdeg;
+		while (D.indeg(ta) > 0) {
+			poutdeg = D.poutdeg(ta);
+			outdeg = D.outdeg(ta);
+			
+		}
 	}
 	
 	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
@@ -455,8 +485,6 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	
 	uint[] L, S, W;
 	uint r = uint.max;
-	bool[] usedArcs;
-	//usedArcs.length = head.length;
 	
 }
 
