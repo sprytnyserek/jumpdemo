@@ -475,7 +475,32 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		while (D.indeg(ta) > 0) {
 			poutdeg = D.poutdeg(ta);
 			outdeg = D.outdeg(ta);
-			
+			/* usuwanie luku w diagramie */
+			D.head.remove(a);
+			D.tail.remove(a);
+			/* usuwanie luku w zbiorze pomocniczym */
+			remove(inarc[ha], a);
+			remove(outarc[ta], a);
+			a = inarc[ta][0];
+			/* jezeli po usunieciu luku pozostaje wolny wierzcholek, trzeba go usunac z tablic pomocnicznych i diagramu */
+			if ((inarc[ha].length == 0) && (outarc[ha].length == 0)) {
+				inarc = inarc[0 .. ha] ~ inarc [(ha + 1) .. $];
+				outarc = outarc[0 .. ha] ~ outarc[(ha + 1) .. $];
+				foreach (uint key; D.tail.keys) {
+					if (D.tail[key] > ha) D.tail[key] -= 1;
+					if (D.head[key] > ha) D.head[key] -= 1;
+				}
+			}
+			ha = ta;
+			if ((inarc[ta].length == 0) && (outarc[ta].length == 0)) {
+				inarc = inarc[0 .. ta] ~ inarc [(ta + 1) .. $];
+				outarc = outarc[0 .. ta] ~ outarc[(ta + 1) .. $];
+				foreach (uint key; D.tail.keys) {
+					if (D.tail[key] > ta) D.tail[key] -= 1;
+					if (D.head[key] > ta) D.head[key] -= 1;
+				}
+			}
+			ta = D.tail[a];
 		}
 	}
 	
