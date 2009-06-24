@@ -453,6 +453,38 @@ class ArcPoset : Poset {
 
 
 private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
+	uint[] S, W;
+	uint[][] Ls;
+	uint r = uint.max;
+	
+	bool isGreedy(uint path, ArcPoset D) {
+		if (!D) throw new Exception("Fatal: inout object of ArcPoset become null during processing");
+		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
+		/* input data validation */
+		uint a = path;
+		if (!D.tail[a]) throw new Exception("No such arc");
+		uint ta = D.tail[a];
+		while (D.indeg(ta) > 0) {
+			if (!((D.indeg(ta) == 1) && (D.pindeg(ta) == 1) && (D.outdeg(ta) >= 1) && (D.poutdeg(ta) >= 1))) return false;
+			a = inarc[ta][0];
+			ta = D.tail[a];
+		}
+		/* end of input data validation */
+		return true;
+	}
+	uint[] extractGreedyPath(uint path, ArcPoset D) {
+		if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
+		uint[] result;
+		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
+		uint a = path, ta = D.tail[a];
+		result = a ~ result;
+		while (D.indeg(ta) > 0) {
+			a = inarc[ta][0];
+			ta = D.tail[a];
+			result = a ~ result;
+		}
+		return result;
+	}
 	/* subroutines as in Syslo' solution */
 	/* S, W - queues */
 	void remove(uint path, ArcPoset D, inout uint[] S, inout uint[] W) { // D is inout object
@@ -479,8 +511,8 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			D.head.remove(a);
 			D.tail.remove(a);
 			/* usuwanie luku w zbiorze pomocniczym */
-			remove(inarc[ha], a);
-			remove(outarc[ta], a);
+			structure.remove(inarc[ha], a);
+			structure.remove(outarc[ta], a);
 			a = inarc[ta][0];
 			/* jezeli po usunieciu luku pozostaje wolny wierzcholek, trzeba go usunac z tablic pomocnicznych i diagramu */
 			if ((inarc[ha].length == 0) && (outarc[ha].length == 0)) {
@@ -490,6 +522,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 					if (D.tail[key] > ha) D.tail[key] -= 1;
 					if (D.head[key] > ha) D.head[key] -= 1;
 				}
+				D.verts -= 1;
 			}
 			ha = ta;
 			if ((inarc[ta].length == 0) && (outarc[ta].length == 0)) {
@@ -499,17 +532,39 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 					if (D.tail[key] > ta) D.tail[key] -= 1;
 					if (D.head[key] > ta) D.head[key] -= 1;
 				}
+				D.verts -= 1;
 			}
 			ta = D.tail[a];
 		}
 	}
 	
 	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
-		
-	}
+		if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
+		L ~= extractGreedyPath(path, D);
+		remove(path, D, S, W);
+		while (S.length > 0) {
+			L = extractGreedyPath(S[0], D) ~ L;
+			remove(S[0], D, S, W);
+			S = S[1 .. $];
+		}
+		if (D.tail.length > 0) foreach (uint semipath; W) {
+			// at first make a copy of D
+			ArcPoset Di = new ArcPoset();
+			Di.setTailHead(D.tail, D.head, D.n);
+			uint[][] Li;
+			Li.length = L.length;
+			for (uint i = 0; i < L.length; i++) Li[i] = L[i].dup;
+			subLineExt(semipath, Li, Di, S, W);
+		}
+		else if (L.length - 1 < r) {
+			r = L.length - 1;
+			Ls.length = 0;
+			Ls.length = L.length;
+			for (uint i = 0; i < L.length; i++) Ls[i] = L[i].dup;
+		} // else if (if D contains arcs)
+	} // subLineExt
 	
-	uint[] L, S, W;
-	uint r = uint.max;
+	
 	
 }
 
