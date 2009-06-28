@@ -454,7 +454,7 @@ class ArcPoset : Poset {
 
 private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	uint[] S, W;
-	uint[][] Ls;
+	uint[][] Ls, L;
 	uint r = uint.max;
 	
 	bool isGreedy(uint path, ArcPoset D) {
@@ -562,9 +562,46 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			Ls.length = L.length;
 			for (uint i = 0; i < L.length; i++) Ls[i] = L[i].dup;
 		} // else if (if D contains arcs)
+		D.compactize();
 	} // subLineExt
 	
+	uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
+	uint n = D.n;
 	
+	ubyte[] vStat;
+	vStat.length = D.verts;
+	for (uint v = 0; v < D.verts; v++) {
+		if (v == 0) {
+			if (D.outdeg(v) == D.poutdeg(v)) vStat[v] = 1; else vStat[v] = 2;
+			continue; // potrzebne, bo poset moze byc pusty
+		}
+		// update S and W
+		foreach (uint i; inarc[v]) {
+			
+		}
+	}
+	
+	while (S.length > 0) {
+		L = extractGreedyPath(S[0], D) ~ L;
+		remove(S[0], D, S, W);
+		S = S[1 .. $];
+	}
+	
+	if (D.tail.length == 0) {
+		r = L.length - 1;
+		Ls.length = 0;
+		Ls.length = L.length;
+		for (uint i = 0; i < L.length; i++) Ls[i] = L[i].dup;
+	}
+	else foreach (uint semipath; W) {
+		// at first make a copy of D
+		ArcPoset Di = new ArcPoset();
+		Di.setTailHead(D.tail, D.head, D.n);
+		uint[][] Li;
+		Li.length = L.length;
+		for (uint i = 0; i < L.length; i++) Li[i] = L[i].dup;
+		subLineExt(semipath, Li, Di, S, W);
+	}
 	
 }
 
