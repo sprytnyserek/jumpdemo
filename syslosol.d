@@ -457,6 +457,18 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	uint[][] Ls, L;
 	uint r = uint.max;
 	
+	void updateGreedyPaths(ArcPoset D, inout uint[] S, inout uint[] W) {
+		ubyte[] vStat;
+		vStat.length = D.verts;
+		for (uint i = 0; i < vStat.length; i++) { // po wszystkich wierchołkach diagramu łukowego
+			if (i == 0) {
+				if (D.outdeg(i) == D.poutdeg(i)) vStat[i] = 1; else vStat[i] = 2;
+				continue; // potrzebne, bo poset moze byc pusty
+			}
+			
+		}
+	}
+	
 	bool isGreedy(uint path, ArcPoset D) {
 		if (!D) throw new Exception("Fatal: inout object of ArcPoset become null during processing");
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
@@ -568,7 +580,8 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
 	uint n = D.n;
 	
-	ubyte[] vStat;
+	// tworzenie list S i W
+	ubyte[] vStat; // 0 - niesprawdzony, 1 - silnie zachłanny, 2 - słabo silnie zachłanny, 3 - łańcuch zakończony
 	vStat.length = D.verts;
 	for (uint v = 0; v < D.verts; v++) {
 		if (v == 0) {
@@ -576,8 +589,16 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			continue; // potrzebne, bo poset moze byc pusty
 		}
 		// update S and W
-		foreach (uint i; inarc[v]) {
-			
+		foreach (uint i; inarc[v]) { // po wszystkich wierchołkach poprzedzających
+			if (vStat[D.tail[i]] == 1) { // poprzednik silnie zachłanny
+				
+			}
+			else if (vStat[D.tail[i]] == 2) { // poprzednik słabo silnie zachłanny
+				
+			}
+			else if (vStat[D.tail[i]] == 3) { // poprzednik zaterminował łańcuch
+				
+			}
 		}
 	}
 	
