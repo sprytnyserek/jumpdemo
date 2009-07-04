@@ -457,15 +457,38 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	uint[][] Ls, L;
 	uint r = uint.max;
 	
+	/* UWAGA: funkcja istotnie zaklada, ze diagram jest zwarty (i nie sprawdza, czy ten warunek jest spelniony!!!) */
 	void updateGreedyPaths(ArcPoset D, inout uint[] S, inout uint[] W) {
 		ubyte[] vStat;
-		vStat.length = D.verts;
-		for (uint i = 0; i < vStat.length; i++) { // po wszystkich wierchołkach diagramu łukowego
+		vStat.length = D.verts; /* 0 - niesprawdzona, 1 - silnie zachlanna, 2 - slabo silnie zachlanna,
+		3 - zakonczona i przyjeta, 4 - zakonczona i odrzucona */
+		uint[][] inarc, outarc;
+		
+		inarc = D.getInarc();
+		outarc = D.getOutarc();
+		for (uint i = 0; i < vStat.length; i++) { // po wszystkich wierzchołkach diagramu łukowego
 			if (i == 0) {
-				if (D.outdeg(i) == D.poutdeg(i)) vStat[i] = 1; else vStat[i] = 2;
+				vStat[i] = 1; // zakładamy, że diagram jest zwarty zatem w pierwszym wierzchołku nie ma łuku pozornego
 				continue; // potrzebne, bo poset moze byc pusty
 			}
-			
+			if (i == vStat.length - 1) {
+				// w tym przypadku, jezeli pewien poprzednik byl oznaczony jako silnie zachlanny lub slabo silnie
+				// zachlanny, to staje sie silnie zachlannym
+				foreach (uint j; inarc[i]) {
+					if (vStat[tail[j]] == 2) vStat[tail[j]] = 1;
+				}
+				vStat[i] = 3;
+			}
+			else {
+				// optymalizacja - sprawdzanie inarc[i].length zamiast indeg / pindeg bez zmian
+				if (D.pindeg(i) < inarc[i].length) {
+					vStat[i] = 4; // w wierzcholku jest koniec luku pozornego, 
+					// dlatego nie istnieje w nim sciezka silnie zachlanna, ani slabo silnie zachlanna;
+					// z kolei skrocenie sciezki spowoduje, ze taka sciezka w ogole nie bedzie zachlanna
+					continue;
+				}
+				
+			}
 		}
 	}
 	
