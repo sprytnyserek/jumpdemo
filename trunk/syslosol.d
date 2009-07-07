@@ -460,34 +460,88 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	/* UWAGA: funkcja istotnie zaklada, ze diagram jest zwarty (i nie sprawdza, czy ten warunek jest spelniony!!!) */
 	void updateGreedyPaths(ArcPoset D, inout uint[] S, inout uint[] W) {
 		ubyte[] vStat;
-		vStat.length = D.verts; /* 0 - niesprawdzona, 1 - silnie zachlanna, 2 - slabo silnie zachlanna,
-		3 - zakonczona i przyjeta, 4 - zakonczona i odrzucona */
+		vStat.length = D.verts; /* 0 - niesprawdzona, 1 - silny, 2 - slabo silny, 3 - silnie zakonczony,
+			4 - slabo zakonczony */
 		uint[][] inarc, outarc;
 		
 		inarc = D.getInarc();
 		outarc = D.getOutarc();
+		S.length = 0;
+		W.length = 0;
 		for (uint i = 0; i < vStat.length; i++) { // po wszystkich wierzchołkach diagramu łukowego
-			if (i == 0) {
+			if (i == 0) { // obsluga zrodla
 				vStat[i] = 1; // zakładamy, że diagram jest zwarty zatem w pierwszym wierzchołku nie ma łuku pozornego
 				continue; // potrzebne, bo poset moze byc pusty
 			}
-			if (i == vStat.length - 1) {
-				// w tym przypadku, jezeli pewien poprzednik byl oznaczony jako silnie zachlanny lub slabo silnie
-				// zachlanny, to staje sie silnie zachlannym
-				foreach (uint j; inarc[i]) {
-					if (vStat[tail[j]] == 2) vStat[tail[j]] = 1;
+			if (i + 1 == vStat.length) { // obsluga odplywu
+				foreach (uint a; inarc(i)) { // dla kazdego luku wchodzacego do zrodla
+					if (vStat[D.tail[a]] < 2) {
+						S.length = S.length + 1;
+						S[length - 1] = a;
+					}
 				}
-				vStat[i] = 3;
+				break;
+			}
+			if (inarc[i].length > 1) {
+				// jezeli jest wiele lukow wchodzacych do biezacego wierzcholka
+				// tu wierzcholek moze byc oznaczony tylko jako silnie/slabo zakonczony
+				bool isDummyFreePath;
+				if (D.indeg(i) > D.pindeg(i) || D.outdeg(i) > D.poutdeg(i)) isDummyFreePath = false;
+				else {
+					foreach (uint a; inarc(i)) {
+						if (vStat[D.tail[a]] == 1 || vStat[D.tail[a]] == 3) {
+							isDummyFreePath = true;
+							break;
+						}
+						isDummyFreePath = false;
+					}
+				}
+				foreach (uint a; inarc(i)) { // dla kazdego luku wchodzacego do wierzcholka
+					bool weakened = false;
+					switch (vStat[D.tail[a]]) {
+						case 4:		vStat[i] = 4;
+									weakened = true;
+									break;
+						case 3:		if (isDummyFreePath) vStat[i] = 3; else vStat[i] = 4;
+									break;
+						case 2:		if (isDummyFreePath) {
+										S.length = S.length + 1;
+										S[length - 1] = a;
+									}
+									else {
+										W.length = W.length + 1;
+										W[length - 1] = a;
+									}
+									vStat[i] = 4;
+									break;
+						case 1:		if (isDummyFreePath) {
+										vStat[i] = 3;
+										S.length = S.length + 1;
+										S[length - 1] = a;
+									}
+									else {
+										vStat[i] = 4;
+										W.length = W.length + 1;
+										W[length - 1] = a;
+									}
+									break;
+					}
+				}
 			}
 			else {
-				// optymalizacja - sprawdzanie inarc[i].length zamiast indeg / pindeg bez zmian
-				if (D.pindeg(i) < inarc[i].length) {
-					vStat[i] = 4; // w wierzcholku jest koniec luku pozornego, 
-					// dlatego nie istnieje w nim sciezka silnie zachlanna, ani slabo silnie zachlanna;
-					// z kolei skrocenie sciezki spowoduje, ze taka sciezka w ogole nie bedzie zachlanna
-					continue;
+				/* jezeli jest dokladnie jeden luk wchodzacy do biezacego wierzcholka (diagram jest zwarty, zatem
+					zawsze jest to luk posetu */
+				vStat[i] = vStat[D.tail[inarc[i][0]]]; // skopiowanie stanu poprzednika
+				if (D.outdeg(i) > D.poutdeg(i)) { // z wierzcholka wychodza luki pozorne
+					if (vStat[i] == 1 || vStat[i] == 3) vStat[i] += 1;
+					if (D.poutdeg(i) == 0) { // z wierzcholka wychodza tylko luki pozorne
+						if (vStat[i] == 2) { // wierzcholek konczy sciezke slabo silnie zachlanna
+							vStat[i] = 4;
+							W.length = W.length + 1;
+							W[length - 1] = inarc[i][0];
+						}
+					}
 				}
-				
 			}
 		}
 	}
