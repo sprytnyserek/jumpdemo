@@ -474,7 +474,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 				continue; // potrzebne, bo poset moze byc pusty
 			}
 			if (i + 1 == vStat.length) { // obsluga odplywu
-				foreach (uint a; inarc(i)) { // dla kazdego luku wchodzacego do zrodla
+				foreach (uint a; inarc[i]) { // dla kazdego luku wchodzacego do zrodla
 					if (vStat[D.tail[a]] < 2) {
 						S.length = S.length + 1;
 						S[length - 1] = a;
@@ -488,7 +488,9 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 				bool isDummyFreePath;
 				if (D.indeg(i) > D.pindeg(i) || D.outdeg(i) > D.poutdeg(i)) isDummyFreePath = false;
 				else {
-					foreach (uint a; inarc(i)) {
+					foreach (uint a; inarc[i]) {
+						// <-- pomin luki pozorne -->
+						if (a >= D.n) continue;
 						if (vStat[D.tail[a]] == 1 || vStat[D.tail[a]] == 3) {
 							isDummyFreePath = true;
 							break;
@@ -496,11 +498,9 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 						isDummyFreePath = false;
 					}
 				}
-				foreach (uint a; inarc(i)) { // dla kazdego luku wchodzacego do wierzcholka
-					bool weakened = false;
+				foreach (uint a; inarc[i]) { // dla kazdego luku wchodzacego do wierzcholka
 					switch (vStat[D.tail[a]]) {
 						case 4:		vStat[i] = 4;
-									weakened = true;
 									break;
 						case 3:		if (isDummyFreePath) vStat[i] = 3; else vStat[i] = 4;
 									break;
@@ -521,8 +521,10 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 									}
 									else {
 										vStat[i] = 4;
-										W.length = W.length + 1;
-										W[length - 1] = a;
+										if (D.indeg(i) == D.pindeg(i) && D.outdeg(i) > D.poutdeg(i)) {
+											W.length = W.length + 1;
+											W[length - 1] = a;
+										}
 									}
 									break;
 					}
@@ -531,7 +533,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			else {
 				/* jezeli jest dokladnie jeden luk wchodzacy do biezacego wierzcholka (diagram jest zwarty, zatem
 					zawsze jest to luk posetu */
-				vStat[i] = vStat[D.tail[inarc[i][0]]]; // skopiowanie stanu poprzednika
+				vStat[i] = vStat[D.tail[inarc[i][0]]]; // skopiowanie stanu jedynego poprzednika
 				if (D.outdeg(i) > D.poutdeg(i)) { // z wierzcholka wychodza luki pozorne
 					if (vStat[i] == 1 || vStat[i] == 3) vStat[i] += 1;
 					if (D.poutdeg(i) == 0) { // z wierzcholka wychodza tylko luki pozorne
@@ -625,6 +627,9 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			}
 			ta = D.tail[a];
 		}
+		D.compactize();
+		D.topologize();
+		updateGreedyPaths(D, S, W);
 	}
 	
 	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
@@ -634,7 +639,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		while (S.length > 0) {
 			L = extractGreedyPath(S[0], D) ~ L;
 			remove(S[0], D, S, W);
-			S = S[1 .. $];
+			//S = S[1 .. $]; - aktualizacja danych odbywa / (powinna odbywac) / sie w nested-funkcji remove
 		}
 		if (D.tail.length > 0) foreach (uint semipath; W) {
 			// at first make a copy of D
@@ -651,12 +656,13 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			Ls.length = L.length;
 			for (uint i = 0; i < L.length; i++) Ls[i] = L[i].dup;
 		} // else if (if D contains arcs)
-		D.compactize();
+		// D.compactize(); - powinno wykonywac sie w funkcji remove
 	} // subLineExt
 	
 	uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
 	uint n = D.n;
 	
+	/+
 	// tworzenie list S i W
 	ubyte[] vStat; // 0 - niesprawdzony, 1 - silnie zachłanny, 2 - słabo silnie zachłanny, 3 - łańcuch zakończony
 	vStat.length = D.verts;
@@ -678,11 +684,14 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			}
 		}
 	}
+	+/
+	
+	updateGreedyPaths(D, S, W);
 	
 	while (S.length > 0) {
 		L = extractGreedyPath(S[0], D) ~ L;
 		remove(S[0], D, S, W);
-		S = S[1 .. $];
+		//S = S[1 .. $]; - aktualizacja danych odbywa / (powinna odbywac) / sie w nested-funkcji remove
 	}
 	
 	if (D.tail.length == 0) {
