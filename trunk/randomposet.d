@@ -97,8 +97,8 @@ class RandomPoset: dfl.form.Form
 		// Do not manually modify this function.
 		//~Entice Designer 0.8.5.02 code begins here.
 		//~DFL Form
-		text = "Losuj poset";
-		clientSize = dfl.all.Size(240, 100);
+		text = "Losuj poset wierzchołkowo";
+		clientSize = dfl.all.Size(264, 100);
 		//~DFL dfl.label.Label=label3
 		label3 = new dfl.label.Label();
 		label3.name = "label3";
@@ -116,14 +116,14 @@ class RandomPoset: dfl.form.Form
 		canButton = new dfl.button.Button();
 		canButton.name = "canButton";
 		canButton.text = "Anuluj";
-		canButton.bounds = dfl.all.Rect(128, 72, 96, 24);
+		canButton.bounds = dfl.all.Rect(152, 72, 96, 24);
 		canButton.parent = this;
 		//~DFL dfl.textbox.TextBox=numberBox
 		numberBox = new dfl.textbox.TextBox();
 		numberBox.name = "numberBox";
 		numberBox.backColor = dfl.all.Color(255, 255, 255);
 		numberBox.borderStyle = dfl.all.BorderStyle.FIXED_SINGLE;
-		numberBox.bounds = dfl.all.Rect(16, 32, 208, 24);
+		numberBox.bounds = dfl.all.Rect(16, 32, 232, 24);
 		numberBox.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 	}

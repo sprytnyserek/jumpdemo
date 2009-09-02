@@ -28,7 +28,9 @@ module syslosol;
 
 private {
 	import std.math;
+	import std.random;
 	import std.stdio;
+	import std.string;
 	/* internal imports */
 	import structure;
 } // end of imports
@@ -113,8 +115,10 @@ class ArcPoset : Poset {
 	
 	
 	void setTailHead(uint[uint] tail, uint[uint] head, uint n) {
-		if ((tail.length == 0) || (tail.length != head.length)) throw new Exception("tail-head length mismatch");
-		if (n > head.length) throw new Exception("poset arcs overloaded");
+		if (tail.length == 0) throw new Exception("syslosol setTailHead: tail.length == 0");
+		if (head.length == 0) throw new Exception("syslosol setTailHead: head.length == 0");
+		if (tail.length != head.length) throw new Exception("syslosol setTailHead: tail-head length mismatch");
+		if (n > head.length) throw new Exception("syslosol setTailHead: poset arcs overloaded");
 		//this.tail.length = 0;
 		//this.head.length = 0;
 		//delete this.tail;
@@ -442,10 +446,96 @@ class ArcPoset : Poset {
 	}
 	
 	
-	static synchronized ArcPoset randomPosetbyArc(uint n = 0, uint dn = 0) { // n == 0 => losowa liczba elementow (lukow rzeczywistych); dn == 0 => poset N-wolny
+	bool isPath(uint a, uint b, inout uint[][] inarc, inout uint[][] outarc) {
+		if ((a >= verts) || (b >= verts)) return false;
+		if (a == b) return true;
+		//uint[][] inarc, outarc;
+		if ((inarc.length == 0) && (outarc.length == 0)) {
+			inarc = getInarc();
+			outarc = getOutarc();
+		}
+		foreach (uint i; outarc[a]) {
+			if (head[i] == b) {
+				return true;
+			} else {
+				return isPath(head[i], b, inarc, outarc);
+			}
+		}
+		return false;
+	}
+	
+	
+	static synchronized ArcPoset randomPosetByArc(uint n = 0, uint s = 0, float p = 0.0, float q = 0.0) { // n == 0 => losowa liczba elementow (lukow rzeczywistych); dn == 0 => poset N-wolny
 		ArcPoset P = new ArcPoset();
+		uint[uint] randomTail, randomHead;
+		uint[][] inarc, outarc;
+		uint VCOUNT = 2, DCOUNT = 1, a, b;
+		float X, Y;
 		
+		while (n == 0) n = rand() % int.max;
+		if (p < float.min) p = float.min;
+		if (q < float.min) q = float.min;
 		
+		/+ P.tail = null;
+		P.head = null;
+		P.tail[0] = 0; // remember tail and head are associative arrays
+		P.head[0] = 1; +/
+		randomTail[0] = 0;
+		randomHead[0] = 1;
+		P.setTailHead(randomTail, randomHead, 1);
+		
+		for (uint i = 1; i < n; i++) {
+			X = cast(float)(rand() % 1000) / 1000.0;
+			Y = cast(float)(rand() % 1000) / 1000.0;
+			if ((X > p) && (Y > q)) {
+				a = rand() % VCOUNT;
+				do{
+					b = rand() % VCOUNT;
+				} while (a == b);
+				inarc = P.getInarc();
+				outarc = P.getOutarc();
+				if (P.isPath(b, a, inarc, outarc)) {
+					randomTail[i] = b;
+					randomHead[i] = a;
+				} else {
+					randomTail[i] = a;
+					randomHead[i] = b;
+				}
+			} else if ((X > p) && (Y <= q)) {
+				a = rand() % VCOUNT;
+				randomTail[i] = a;
+				randomHead[i] = VCOUNT;
+				VCOUNT += 1;
+			} else if ((X <= p) && (Y > q)) {
+				b = rand() % VCOUNT;
+				randomTail[i] = VCOUNT;
+				randomHead[i] = a;
+				VCOUNT += 1;
+			} else {
+				randomTail[i] = VCOUNT;
+				randomHead[i] = VCOUNT + 1;
+				VCOUNT += 2;
+			}
+			P.setTailHead(randomTail, randomHead, i + 1);
+		}
+		
+		uint j = n;
+		while (s--) { // (s == 0) => s becomes uint.max
+			a = rand() % VCOUNT;
+			do{
+				b = rand() % VCOUNT;
+			} while (a == b);
+			inarc = P.getInarc();
+			outarc = P.getOutarc();
+			if ((!(P.isPath(a, b, inarc, outarc))) && (!(P.isPath(b, a, inarc, outarc)))) {
+				randomTail[j] = a;
+				randomHead[j] = b;
+				j += 1;
+				P.setTailHead(randomTail, randomHead, n);
+			}
+		}
+		P.compactize();
+		P.topologize();
 		return P;
 	}
 	
@@ -475,7 +565,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			}
 			if (i + 1 == vStat.length) { // obsluga odplywu
 				foreach (uint a; inarc[i]) { // dla kazdego luku wchodzacego do zrodla
-					if (vStat[D.tail[a]] < 2) {
+					if (vStat[D.tail[a]] < 3) {
 						S.length = S.length + 1;
 						S[length - 1] = a;
 					}
@@ -485,26 +575,32 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			if (inarc[i].length > 1) {
 				// jezeli jest wiele lukow wchodzacych do biezacego wierzcholka
 				// tu wierzcholek moze byc oznaczony tylko jako silnie/slabo zakonczony
-				bool isDummyFreePath;
-				if (D.indeg(i) > D.pindeg(i) || D.outdeg(i) > D.poutdeg(i)) isDummyFreePath = false;
-				else {
+				bool ALLDUMMYFREE;
+				if ((D.indeg(i) > D.pindeg(i)) || (D.outdeg(i) > D.poutdeg(i))) {
+					ALLDUMMYFREE = false;
+				} else {
+					ALLDUMMYFREE = true;
 					foreach (uint a; inarc[i]) {
-						// <-- pomin luki pozorne -->
-						if (a >= D.n) continue;
-						if (vStat[D.tail[a]] == 1 || vStat[D.tail[a]] == 3) {
-							isDummyFreePath = true;
+						if (vStat[D.tail[a]] == 2 || vStat[D.tail[a]] == 4) {
+							ALLDUMMYFREE = false;
 							break;
 						}
-						isDummyFreePath = false;
+					}
+				}
+				uint[] X;
+				foreach (uint a; inarc[i]) {
+					if (vStat[D.tail[a]] == 1 || vStat[D.tail[a]] == 3) {
+						X.length = X.length + 1;
+						X[length - 1] = D.tail[a];
 					}
 				}
 				foreach (uint a; inarc[i]) { // dla kazdego luku wchodzacego do wierzcholka
 					switch (vStat[D.tail[a]]) {
 						case 4:		vStat[i] = 4;
 									break;
-						case 3:		if (isDummyFreePath) vStat[i] = 3; else vStat[i] = 4;
+						case 3:		if (vStat[i] != 4) vStat[i] = 3;
 									break;
-						case 2:		if (isDummyFreePath) {
+						case 2:		/*if (isDummyFreePath) {
 										S.length = S.length + 1;
 										S[length - 1] = a;
 									}
@@ -512,9 +608,22 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 										W.length = W.length + 1;
 										W[length - 1] = a;
 									}
+									vStat[i] = 4;*/
+									if (X.length == 0) {
+										W.length = W.length + 1;
+										W[length + 1] = a;
+									} else {
+										if ((D.indeg(i) > D.pindeg(i)) || (D.outdeg(i) > D.poutdeg(i))) {
+											W.length = W.length + 1;
+											W[length + 1] = a;
+										} else {
+											S.length = S.length + 1;
+											S[length + 1] = a;
+										}
+									}
 									vStat[i] = 4;
 									break;
-						case 1:		if (isDummyFreePath) {
+						case 1:		/*if (isDummyFreePath) {
 										vStat[i] = 3;
 										S.length = S.length + 1;
 										S[length - 1] = a;
@@ -525,12 +634,31 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 											W.length = W.length + 1;
 											W[length - 1] = a;
 										}
+									}*/
+									if ((D.indeg(i) == D.pindeg(i)) && (D.outdeg(i) == D.poutdeg(i))) {
+										if ((contains(X, D.tail[a])) && (X.length - 1 > 0)) {
+											S.length = S.length + 1;
+											S[length + 1] = a;
+										}
+										if (ALLDUMMYFREE) {
+											vStat[i] = 3;
+										} else {
+											vStat[i] = 4;
+										}
+									} else if ((D.indeg(i) == D.pindeg(i)) && (D.outdeg(i) > D.poutdeg(i))) {
+										W.length = W.length + 1;
+										W[length + 1] = a;
+										vStat[i] = 4;
+									} else {
+										vStat[i] = 4;
 									}
+									break;
+						default:	throw new Exception("updateGreedyPaths: Topologiczny poprzednik nieokreslony" ~ newline);
 									break;
 					}
 				}
-			}
-			else {
+				X.length = 0;
+			} else {
 				/* jezeli jest dokladnie jeden luk wchodzacy do biezacego wierzcholka (diagram jest zwarty, zatem
 					zawsze jest to luk posetu */
 				vStat[i] = vStat[D.tail[inarc[i][0]]]; // skopiowanie stanu jedynego poprzednika
@@ -709,13 +837,13 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		for (uint i = 0; i < L.length; i++) Li[i] = L[i].dup;
 		subLineExt(semipath, Li, Di, S, W);
 	}
-	
+	Lopt = Ls;
 }
 
 
 uint[][] arcOptLineExt(ArcPoset P) {
 	if (!P) return [];
 	uint[][] result;
-	
+	optLineExt(P, result);
 	return result;
 }
