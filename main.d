@@ -47,26 +47,30 @@ import syslosol;
 import preview;
 import painter;
 import randomposet;
+import randomarcposet;
 /* end of internal imports */
 
 class MainWindow: dfl.form.Form
 {
 	// Do not modify or move this block of variables.
 	//~Entice Designer variables begin here.
-	dfl.label.Label statusBar;
 	dfl.panel.Panel controlPanel;
 	dfl.label.Label parameterLabel;
-	dfl.textbox.TextBox parameterBox;
+	dfl.button.Button stopButton;
 	dfl.button.Button runButton;
 	dfl.label.Label label2;
-	dfl.button.Button stopButton;
+	dfl.textbox.TextBox parameterBox;
+	dfl.label.Label label6;
+	dfl.button.Button sysloRun;
+	dfl.button.Button sysloStop;
+	dfl.label.Label statusBar;
 	//~Entice Designer variables end here.
 	Preview panel1;
 	Thread processing;
 	Poset P;
 	ArcPoset aP;
 	uint[][] result;
-	uint n;
+	uint n, s;
 	char[] filename;
 	MenuItem mpop, mi;
 	Label previewLabel;
@@ -122,10 +126,34 @@ class MainWindow: dfl.form.Form
 	}
 	
 	
-	private int thRandomPoset() {
+	private int thRunSyslo() {
+		if (!(this.aP)) return 1;
+		statusBar.text("Przetwarzanie...");
+		parameterBox.enabled(false);
+		runButton.enabled(false);
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[1].enabled(false);
+		this.result.length = 0;
+		this.result = arcOptLineExt(aP);
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos, this.result);
+		menu.menuItems[1].menuItems[1].enabled(true);
+		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[0].menuItems[0].enabled(true);
+		parameterBox.enabled(true);
+		runButton.enabled(true);
+		statusBar.text("Zakończono");
+		return 0;
+	}
+	
+	
+	private int thVertexRandomPoset() {
 		statusBar.text("Losowanie...");
 		menu.menuItems[0].menuItems[0].enabled(false);
 		menu.menuItems[1].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[1].enabled(false);
 		parameterBox.text = "";
 		runButton.enabled(false);
 		Poset P;
@@ -137,8 +165,38 @@ class MainWindow: dfl.form.Form
 		PosetPainter painter = new PosetPainter(P);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		panel1.drawDiagram(P, pos);
+		menu.menuItems[1].menuItems[1].enabled(true);
 		menu.menuItems[1].menuItems[0].enabled(true);
 		menu.menuItems[0].menuItems[0].enabled(true);
+		sysloRun.enabled(true);
+		parameterBox.enabled(true);
+		statusBar.text("Gotowy");
+		parameterBox.focus();
+		return 0;
+	}
+	
+	
+	private int thArcRandomPoset() {
+		statusBar.text("Losowanie...");
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[1].enabled(false);
+		parameterBox.text = "";
+		runButton.enabled(false);
+		ArcPoset aP;
+		aP = ArcPoset.randomPosetByArc(n, s, 0.5, 0.5);
+		this.aP = aP;
+		/+if (this.aP) delete this.aP;
+		this.aP = new ArcPoset();
+		this.aP.setInOutList(P.getInlist(), P.getOutlist());+/
+		this.P = cast(Poset)(this.aP);
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos);
+		menu.menuItems[1].menuItems[1].enabled(true);
+		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[0].menuItems[0].enabled(true);
+		sysloRun.enabled(true);
 		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
 		parameterBox.focus();
@@ -154,6 +212,7 @@ class MainWindow: dfl.form.Form
 		parameterBox.textChanged ~= &parameterBox_textChanged;
 		runButton.click ~= &runButton_click;
 		stopButton.click ~= &stopButton_click;
+		sysloRun.click ~= &sysloRun_click;
 		//spawnButton.click ~= &spawnButton_click;
 		//exitButton.click ~= &exitButton_click;
 		//Graphics g = pictureBox1.createGraphics();
@@ -196,9 +255,15 @@ class MainWindow: dfl.form.Form
 			this.menu.menuItems.add(mpop);
 		}
 		with (mi = new MenuItem) {
-			text = "&Losuj";
+			text = "Losuj &wierzchołkowo";
 			index = 0;
-			click ~= &dataMenuRandom_click;
+			click ~= &dataMenuVertexRandom_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Losuj ł&ukowo";
+			index = 1;
+			click ~= &dataMenuArcRandom_click;
 			mpop.menuItems.add(mi);
 		}
 		
@@ -254,13 +319,32 @@ class MainWindow: dfl.form.Form
 		parameterBox.enabled = false;
 		parameterBox.bounds = dfl.all.Rect(176, 24, 120, 23);
 		parameterBox.parent = controlPanel;
+		//~DFL dfl.label.Label=label6
+		label6 = new dfl.label.Label();
+		label6.name = "label6";
+		label6.text = "Algorytm Sysły";
+		label6.bounds = dfl.all.Rect(72, 72, 100, 23);
+		label6.parent = controlPanel;
+		//~DFL dfl.button.Button=sysloRun
+		sysloRun = new dfl.button.Button();
+		sysloRun.name = "sysloRun";
+		sysloRun.enabled = false;
+		sysloRun.text = "Uruchom";
+		sysloRun.bounds = dfl.all.Rect(416, 72, 123, 23);
+		sysloRun.parent = controlPanel;
+		//~DFL dfl.button.Button=sysloStop
+		sysloStop = new dfl.button.Button();
+		sysloStop.name = "sysloStop";
+		sysloStop.text = "Zatrzymaj";
+		sysloStop.bounds = dfl.all.Rect(552, 72, 123, 23);
+		sysloStop.parent = controlPanel;
 		//~DFL dfl.label.Label=statusBar
 		statusBar = new Label();
 		statusBar.name = "statusBar";
 		statusBar.dock = dfl.all.DockStyle.BOTTOM;
 		statusBar.borderStyle = dfl.all.BorderStyle.FIXED_3D;
 		statusBar.textAlign = dfl.all.ContentAlignment.BOTTOM_LEFT;
-		statusBar.bounds = dfl.all.Rect(0, 577, 800, 23);
+		statusBar.bounds = dfl.all.Rect(0, 128, 800, 23);
 		statusBar.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 		panel1 = new Preview();
@@ -319,6 +403,30 @@ class MainWindow: dfl.form.Form
 		}
 		menu.menuItems[0].menuItems[0].enabled(true);
 		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[1].menuItems[1].enabled(true);
+		parameterBox.text = "";
+		parameterBox.enabled(true);
+		runButton.enabled(true);
+		statusBar.text("Przerwano");
+	}
+	
+	
+	private void sysloRun_click(Object sender, EventArgs ea) {
+		if (processing) delete processing;
+		processing = new Thread(&(this.thRunSyslo));
+		processing.start();
+	}
+	
+	
+	private void sysloStop_click(Object sender, EventArgs ea) {
+		if (processing) {
+			//processing.pause();
+			delete processing;
+			processing = null;
+		}
+		menu.menuItems[0].menuItems[0].enabled(true);
+		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[1].menuItems[1].enabled(true);
 		parameterBox.text = "";
 		parameterBox.enabled(true);
 		runButton.enabled(true);
@@ -331,13 +439,30 @@ class MainWindow: dfl.form.Form
 	}
 	
 	
-	private void dataMenuRandom_click(Object sender, EventArgs ea) {
+	private void dataMenuVertexRandom_click(Object sender, EventArgs ea) {
 		RandomPoset dialog = new RandomPoset();
 		dialog.showDialog();
 		if ((dialog.dialogResult == DialogResult.OK) && (dialog.numberBox.lines.length > 0)) {
 			n = toUint(dialog.numberBox.lines[0]);
 			if (processing) delete processing;
-			processing = new Thread(&(this.thRandomPoset));
+			processing = new Thread(&(this.thVertexRandomPoset));
+			processing.start();
+		}
+		dialog.dispose();
+		delete dialog;
+	}
+	
+	
+	private void dataMenuArcRandom_click(Object sender, EventArgs ea) {
+		RandomArcPoset dialog = new RandomArcPoset();
+		dialog.showDialog();
+		if ((dialog.dialogResult == DialogResult.OK) && 
+				(dialog.posetArcNumBox.lines.length > 0) &&
+				(dialog.dummyArcNumBox.lines.length > 0)) {
+			n = toUint(dialog.posetArcNumBox.lines[0]);
+			s = toUint(dialog.dummyArcNumBox.lines[0]);
+			if (processing) delete processing;
+			processing = new Thread(&(this.thArcRandomPoset));
 			processing.start();
 		}
 		dialog.dispose();
