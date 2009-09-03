@@ -284,7 +284,7 @@ class ArcPoset : Poset {
 			if (indeg(tail[i]) == 0) src ~= i;
 		}+/
 		foreach (uint key, uint value; tail) if (indeg(value) == 0) src ~= key;
-		//debug writefln("sources: ", src);
+		debug writefln("sources: ", src);
 		if (src.length > 1) for (uint i = 0; i < src.length - 1; i++) {
 			uint c, d;
 			if (tail[src[i]] < tail[src[i + 1]]) {
@@ -314,7 +314,7 @@ class ArcPoset : Poset {
 			if (outdeg(head[i]) == 0) snk ~= i;
 		}+/
 		foreach (uint key, uint value; head) if (outdeg(value) == 0) snk ~= key;
-		//debug writefln("sinks:", snk);
+		debug writefln("sinks:", snk);
 		if (snk.length > 1) for (uint i = 0; i < snk.length - 1; i++) {
 			uint c, d;
 			if (head[snk[i]] < head[snk[i + 1]]) {
@@ -383,6 +383,27 @@ class ArcPoset : Poset {
 				verts -= 1;
 			}
 		}
+	}
+	
+	
+	void compactizeNew() {
+		uint[][] inarc, outarc;
+		uint[uint] newTail, newHead;
+		inarc = getInarc();
+		outarc = getOutarc();
+		newTail = getTail();
+		newHead = getHead();
+		
+		uint[] src;
+		uint minsrc;
+		for (uint i = 0; i < inarc.length; i++) {
+			if (inarc[i].length == 0) {
+				src.length = src.length + 1;
+				src[length - 1] = i;
+			}
+		}
+		
+		return;
 	}
 	
 	
@@ -455,11 +476,7 @@ class ArcPoset : Poset {
 			outarc = getOutarc();
 		}
 		foreach (uint i; outarc[a]) {
-			if (head[i] == b) {
-				return true;
-			} else {
-				return isPath(head[i], b, inarc, outarc);
-			}
+			if (isPath(head[i], b, inarc, outarc)) return true;
 		}
 		return false;
 	}
@@ -483,15 +500,21 @@ class ArcPoset : Poset {
 		randomTail[0] = 0;
 		randomHead[0] = 1;
 		P.setTailHead(randomTail, randomHead, 1);
+		debug writefln("0, (0,1)");
 		
 		for (uint i = 1; i < n; i++) {
 			X = cast(float)(rand() % 1000) / 1000.0;
 			Y = cast(float)(rand() % 1000) / 1000.0;
 			if ((X > p) && (Y > q)) {
-				a = rand() % VCOUNT;
-				do{
-					b = rand() % VCOUNT;
-				} while (a == b);
+				if (VCOUNT == 2) {
+					a = 0;
+					b = 1;
+				} else {
+					a = rand() % VCOUNT;
+					do{
+						b = rand() % VCOUNT;
+					} while (a == b);
+				}
 				inarc = P.getInarc();
 				outarc = P.getOutarc();
 				if (P.isPath(b, a, inarc, outarc)) {
@@ -504,22 +527,31 @@ class ArcPoset : Poset {
 			} else if ((X > p) && (Y <= q)) {
 				a = rand() % VCOUNT;
 				randomTail[i] = a;
+				b = VCOUNT;
 				randomHead[i] = VCOUNT;
 				VCOUNT += 1;
+				debug writefln("new head vertex ", b);
 			} else if ((X <= p) && (Y > q)) {
+				a = VCOUNT;
 				b = rand() % VCOUNT;
 				randomTail[i] = VCOUNT;
-				randomHead[i] = a;
+				randomHead[i] = b;
 				VCOUNT += 1;
+				debug writefln("new tail vertex ", a);
 			} else {
+				a = VCOUNT;
+				b = VCOUNT + 1;
 				randomTail[i] = VCOUNT;
 				randomHead[i] = VCOUNT + 1;
 				VCOUNT += 2;
+				debug writefln("new tail-head vertices ", a, " ", b);
 			}
 			P.setTailHead(randomTail, randomHead, i + 1);
+			debug writefln(i, ", (", a, ", ", b, ")");
 		}
 		
 		uint j = n;
+		debug writefln("Dummies");
 		while (s--) { // (s == 0) => s becomes uint.max
 			a = rand() % VCOUNT;
 			do{
@@ -532,10 +564,28 @@ class ArcPoset : Poset {
 				randomHead[j] = b;
 				j += 1;
 				P.setTailHead(randomTail, randomHead, n);
+				debug writefln(j-1, ", (", a, ", ", b, ")");
 			}
 		}
-		P.compactize();
-		P.topologize();
+		debug writefln(P.getTail());
+		debug writefln(P.getHead());
+		debug writefln("liczba wierzcholkow: ", P.getVerts());
+		debug writefln("inlist: ", P.getInlist());
+		debug writefln("outlist: ", P.getOutlist());
+		//P.compactize();
+		debug writefln("compact:");
+		debug writefln(P.getTail());
+		debug writefln(P.getHead());
+		debug writefln("liczba wierzcholkow: ", P.getVerts());
+		debug writefln("inlist: ", P.getInlist());
+		debug writefln("outlist: ", P.getOutlist());
+		//P.topologize();
+		debug writefln("topologized:");
+		debug writefln(P.getTail());
+		debug writefln(P.getHead());
+		debug writefln("liczba wierzcholkow: ", P.getVerts());
+		debug writefln("inlist: ", P.getInlist());
+		debug writefln("outlist: ", P.getOutlist());
 		return P;
 	}
 	
