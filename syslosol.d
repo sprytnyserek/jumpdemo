@@ -277,7 +277,7 @@ class ArcPoset : Poset {
 	/**
 	 * Operacja zwierania diagramu łukowego posetu
 	 */
-	void compactize(bool extendedMode = false) {
+	void compactizeOld(bool extendedMode = false) {
 		// redukcja zrodel
 		uint[] src;
 		/+for (uint i = 0; i < n; i++) {
@@ -386,7 +386,7 @@ class ArcPoset : Poset {
 	}
 	
 	
-	void compactizeNew() {
+	void compactize() {
 		uint[][] inarc, outarc;
 		uint[uint] newTail, newHead;
 		inarc = getInarc();
@@ -394,15 +394,150 @@ class ArcPoset : Poset {
 		newTail = getTail();
 		newHead = getHead();
 		
+		if ((inarc.length < 2) || (outarc.length < 2)) {
+			return;
+		}
+		
 		uint[] src;
-		uint minsrc;
 		for (uint i = 0; i < inarc.length; i++) {
 			if (inarc[i].length == 0) {
 				src.length = src.length + 1;
 				src[length - 1] = i;
 			}
 		}
+		uint[] sink;
+		for (uint i = 0; i < outarc.length; i++) {
+			if (outarc[i].length == 0) {
+				sink.length = sink.length + 1;
+				sink[length - 1] = i;
+			}
+		}
+		foreach (uint i; newTail.keys) {
+			for (uint j = 1; j < src.length; j++) {
+				if (newTail[i] == src[j]) {
+					newTail[i] = src[0];
+				}
+			}
+		}
+		foreach (uint i; newHead.keys) {
+			for (uint j = 1; j < sink.length; j++) {
+				if (newHead[i] == sink[j]) {
+					newHead[i] = sink[0];
+				}
+			}
+		}
+		for (uint i = 1; i < src.length; i++) {
+			foreach (uint j; newTail.keys) {
+				if (newTail[j] > src[i]) {
+					newTail[j] -= 1;
+				}
+			}
+			foreach (uint j; newHead.keys) {
+				if (newHead[j] > src[i]) {
+					newHead[j] -= 1;
+				}
+			}
+			for (uint j = i + 1; j < src.length; j++) {
+				src[j] -= 1;
+			}
+			for (uint j = 0; j < sink.length; j++) {
+				if (sink[j] > src[i]) sink[j] -= 1;
+			}
+		}
+		for (uint i = 1; i < sink.length; i++) {
+			foreach (uint j; newTail.keys) {
+				if (newTail[j] > sink[i]) {
+					newTail[j] -= 1;
+				}
+			}
+			foreach (uint j; newHead.keys) {
+				if (newHead[j] > sink[i]) {
+					newHead[j] -= 1;
+				}
+			}
+			for (uint j = i + 1; j < sink.length; j++) {
+				sink[j] -= 1;
+			}
+		}
+		this.setTailHead(newTail, newHead, this.n);
+		inarc = this.getInarc();
+		outarc = this.getOutarc();
 		
+		uint[] removedArcs;
+		uint[] removedVert;
+		foreach (uint i; newTail.keys) {
+			if (i >= n && (outarc[newTail[i]].length < 2 || inarc[newHead[i]].length < 2)) {
+				removedArcs.length = removedArcs.length + 1;
+				removedArcs[length - 1] = i;
+				if (newTail[i] < newHead[i]) {
+					foreach (uint j; newTail.keys) {
+						if (newTail[j] == newHead[i]) {
+							newTail[j] = newTail[i];
+						}
+					}
+					removedVert.length = removedVert.length + 1;
+					removedVert[length - 1] = newHead[i];
+				} else {
+					foreach (uint j; newHead.keys) {
+						if (newHead[j] == newTail[i]) {
+							newHead[j] = newHead[i];
+						}
+					}
+					removedVert.length = removedVert.length + 1;
+					removedVert[length - 1] = newTail[i];
+				}
+			}
+		}
+		for (uint i = 0; i < removedArcs.length; i++) {
+			newTail.remove(removedArcs[i]);
+			newHead.remove(removedArcs[i]);
+		}
+		uint[uint] savedTail, savedHead;
+		/+uint[] keys = newTail.keys;
+		foreach (uint i; keys) {
+			if (i >= n) {
+				savedTail[i] = newTail[i];
+				savedHead[i] = newHead[i];
+				newTail.remove(i);
+				newHead.remove(i);
+			}
+		}
+		uint j = n;
+		foreach (uint i; savedTail) {
+			newTail[j] = savedTail[i];
+			j += 1;
+		}
+		j = n;
+		foreach (uint i; savedHead) {
+			newHead[j] = savedHead[i];
+			j += 1;
+		}+/
+		uint j = n;
+		foreach (uint i; newTail.keys) {
+			if (i < n) {
+				savedTail[i] = newTail[i];
+				savedHead[i] = newHead[i];
+			} else {
+				savedTail[j] = newTail[i];
+				savedHead[j] = newHead[i];
+				j += 1;
+			}
+		}
+		removedVert = removedVert.sort;
+		for (uint i = 0; i < removedVert.length; i++) {
+			foreach (uint k; savedTail.keys) {
+				if (savedTail[k] > removedVert[i]) {
+					savedTail[k] -= 1;
+				}
+				if (savedHead[k] > removedVert[i]) {
+					savedHead[k] -= 1;
+				}
+			}
+			for (uint k = i + 1; k < removedVert.length; k++) {
+				removedVert[k] -= 1;
+			}
+		}
+		this.setTailHead(savedTail, savedHead, n);
 		return;
 	}
 	
@@ -468,9 +603,10 @@ class ArcPoset : Poset {
 	
 	
 	bool isPath(uint a, uint b, inout uint[][] inarc, inout uint[][] outarc) {
-		if ((a >= verts) || (b >= verts)) return false;
+		//if ((a >= verts) || (b >= verts)) return false;
+		if ((a >= verts) || (b >= verts)) throw new Exception("No such vertex " ~ std.string.toString(a) ~ " or " ~ std.string.toString(b));
 		if (a == b) return true;
-		//uint[][] inarc, outarc;
+		
 		if ((inarc.length == 0) && (outarc.length == 0)) {
 			inarc = getInarc();
 			outarc = getOutarc();
@@ -572,14 +708,14 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
-		//P.compactize();
+		P.compactize();
 		debug writefln("compact:");
 		debug writefln(P.getTail());
 		debug writefln(P.getHead());
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
-		//P.topologize();
+		P.topologize();
 		debug writefln("topologized:");
 		debug writefln(P.getTail());
 		debug writefln(P.getHead());
@@ -661,14 +797,14 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 									vStat[i] = 4;*/
 									if (X.length == 0) {
 										W.length = W.length + 1;
-										W[length + 1] = a;
+										W[length - 1] = a;
 									} else {
 										if ((D.indeg(i) > D.pindeg(i)) || (D.outdeg(i) > D.poutdeg(i))) {
 											W.length = W.length + 1;
-											W[length + 1] = a;
+											W[length - 1] = a;
 										} else {
 											S.length = S.length + 1;
-											S[length + 1] = a;
+											S[length - 1] = a;
 										}
 									}
 									vStat[i] = 4;
@@ -688,7 +824,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 									if ((D.indeg(i) == D.pindeg(i)) && (D.outdeg(i) == D.poutdeg(i))) {
 										if ((contains(X, D.tail[a])) && (X.length - 1 > 0)) {
 											S.length = S.length + 1;
-											S[length + 1] = a;
+											S[length - 1] = a;
 										}
 										if (ALLDUMMYFREE) {
 											vStat[i] = 3;
@@ -697,7 +833,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 										}
 									} else if ((D.indeg(i) == D.pindeg(i)) && (D.outdeg(i) > D.poutdeg(i))) {
 										W.length = W.length + 1;
-										W[length + 1] = a;
+										W[length - 1] = a;
 										vStat[i] = 4;
 									} else {
 										vStat[i] = 4;
@@ -711,6 +847,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			} else {
 				/* jezeli jest dokladnie jeden luk wchodzacy do biezacego wierzcholka (diagram jest zwarty, zatem
 					zawsze jest to luk posetu */
+				assert(i > D.tail[inarc[i][0]]);
 				vStat[i] = vStat[D.tail[inarc[i][0]]]; // skopiowanie stanu jedynego poprzednika
 				if (D.outdeg(i) > D.poutdeg(i)) { // z wierzcholka wychodza luki pozorne
 					if (vStat[i] == 1 || vStat[i] == 3) vStat[i] += 1;
