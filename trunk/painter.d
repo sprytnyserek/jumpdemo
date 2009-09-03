@@ -186,8 +186,15 @@ or see <http://www.gnu.org/licenses/>.
  		/* ******************************************** */
  		/* ******************************************** */
  		uint space;
- 		if ((columns < 2) && (rows < 2)) space = 0; else
+ 		if ((columns < 2) && (rows < 2)) {
+ 			space = 0;
+ 		} else if (columns < 2) {
+ 			space = (gridHeight - 20) / (rows - 1);
+ 		} else if (rows < 2) {
+ 			space = (gridWidth - 20) / (columns - 1);
+ 		} else {
 			space = gridWidth < gridHeight ? (gridWidth - 20) / (columns - 1) : (gridHeight - 20) / (rows - 1);
+		}
  		if (space < minSpace) space = minSpace;
  		else if (space > maxSpace) space = maxSpace;
  		uint y11 = (rows - 1) * space + 20;
