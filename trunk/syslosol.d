@@ -118,7 +118,7 @@ class ArcPoset : Poset {
 		if (tail.length == 0) throw new Exception("syslosol setTailHead: tail.length == 0");
 		if (head.length == 0) throw new Exception("syslosol setTailHead: head.length == 0");
 		if (tail.length != head.length) throw new Exception("syslosol setTailHead: tail-head length mismatch");
-		if (n > head.length) throw new Exception("syslosol setTailHead: poset arcs overloaded");
+		//if (n > head.length) throw new Exception("syslosol setTailHead: poset arcs overloaded");
 		//this.tail.length = 0;
 		//this.head.length = 0;
 		//delete this.tail;
@@ -847,7 +847,13 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			} else {
 				/* jezeli jest dokladnie jeden luk wchodzacy do biezacego wierzcholka (diagram jest zwarty, zatem
 					zawsze jest to luk posetu */
-				assert(i > D.tail[inarc[i][0]]);
+				//assert(i > D.tail[inarc[i][0]]);
+				debug writefln(inarc[i][0]);
+				debug writefln("inarc[i][0] ok");
+				debug writefln(D.tail[inarc[i][0]]);
+				debug writefln("D.tail[inarc[i][0]] ok");
+				debug writefln(vStat[D.tail[inarc[i][0]]]);
+				debug writefln("vStat[D.tail[inarc[i][0]]] ok");
 				vStat[i] = vStat[D.tail[inarc[i][0]]]; // skopiowanie stanu jedynego poprzednika
 				if (D.outdeg(i) > D.poutdeg(i)) { // z wierzcholka wychodza luki pozorne
 					if (vStat[i] == 1 || vStat[i] == 3) vStat[i] += 1;
@@ -868,7 +874,8 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
 		/* input data validation */
 		uint a = path;
-		if (!D.tail[a]) throw new Exception("No such arc");
+		//if (!D.tail[a]) throw new Exception("No such arc");
+		if (!(contains(D.tail.keys, a))) throw new Exception("No such arc");
 		uint ta = D.tail[a];
 		while (D.indeg(ta) > 0) {
 			if (!((D.indeg(ta) == 1) && (D.pindeg(ta) == 1) && (D.outdeg(ta) >= 1) && (D.poutdeg(ta) >= 1))) return false;
@@ -879,7 +886,12 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		return true;
 	}
 	uint[] extractGreedyPath(uint path, ArcPoset D) {
-		if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
+		try {
+			if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
+		} catch (Exception ex) {
+			debug writefln("extractGreedyPath: isGreedy failure");
+			throw ex;
+		}
 		uint[] result;
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
 		uint a = path, ta = D.tail[a];
@@ -898,7 +910,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
 		/* input data validation */
 		uint a = path;
-		if (!D.tail[a]) throw new Exception("No such arc");
+		if (!(contains(D.tail.keys, a))) throw new Exception("No such arc");
 		uint ta = D.tail[a];
 		while (D.indeg(ta) > 0) {
 			if (!((D.indeg(ta) == 1) && (D.pindeg(ta) == 1) && (D.outdeg(ta) >= 1) && (D.poutdeg(ta) >= 1))) throw new Exception("Not a greedy path");
@@ -942,13 +954,19 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			}
 			ta = D.tail[a];
 		}
+		debug writefln(path, " removed");
 		D.compactize();
 		D.topologize();
 		updateGreedyPaths(D, S, W);
 	}
 	
 	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
-		if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
+		try {
+			if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
+		} catch (Exception ex) {
+			debug writefln("subLineExt: isGreedy failure");
+			throw ex;
+		}
 		L ~= extractGreedyPath(path, D);
 		remove(path, D, S, W);
 		while (S.length > 0) {
@@ -1004,8 +1022,14 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	updateGreedyPaths(D, S, W);
 	
 	while (S.length > 0) {
+		writefln("S: ", S);
+		writefln("Extracting greedy path ", S[0]);
 		L = extractGreedyPath(S[0], D) ~ L;
+		writefln("Extracted. ", L.length, " Removing ", S[0]);
 		remove(S[0], D, S, W);
+		writefln("S: ", S);
+		writefln("W: ", W);
+		
 		//S = S[1 .. $]; - aktualizacja danych odbywa / (powinna odbywac) / sie w nested-funkcji remove
 	}
 	
