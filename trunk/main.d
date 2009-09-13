@@ -203,6 +203,47 @@ class MainWindow: dfl.form.Form
 		return 0;
 	}
 	
+	private int thArcExamplePoset() {
+		menu.menuItems[0].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[0].enabled(false);
+		menu.menuItems[1].menuItems[1].enabled(false);
+		parameterBox.text = "";
+		runButton.enabled(false);
+		ArcPoset aP = new ArcPoset();
+		//aP = ArcPoset.randomPosetByArc(n, s, 0.5, 0.5);
+		uint[uint] newTail = [0:0, 1:2, 2:1, 3:0, 4:2, 5:1], newHead = [0:1, 1:3, 2:4, 3:4, 4:5, 5:3];
+		uint newN = 5;
+		//newTail = [0:0, 1:2, 2:1, 3:0, 4:2, 5:1];
+		//newHead = [0:1, 1:3, 2:4, 3:4, 4:5, 5:3];
+		//newN = 5;
+		//uint[uint] newTail, newHead;
+		//newTail[0] = 0; newTail[1] = 2; newTail[2] = 1; newTail[3] = 0; newTail[4] = 2; newTail[5] = 1;
+		//newHead[0] = 1; newHead[1] = 3; newHead[2] = 4; newHead[3] = 4; newHead[4] = 5; newHead[5] = 3;
+		//writefln("newTail.length: ", newTail.length);
+		//writefln("newHead.length: ", newHead.length);
+		//uint newN;
+		//newN = 5;
+		//aP.setTailHead(newTail, newHead, newN);
+		//aP.setTailHead(newTail, newHead, newN);
+		aP.examplePoset();
+		this.aP = aP;
+		/+if (this.aP) delete this.aP;
+		this.aP = new ArcPoset();
+		this.aP.setInOutList(P.getInlist(), P.getOutlist());+/
+		this.P = cast(Poset)(this.aP);
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos);
+		menu.menuItems[1].menuItems[1].enabled(true);
+		menu.menuItems[1].menuItems[0].enabled(true);
+		menu.menuItems[0].menuItems[0].enabled(true);
+		sysloRun.enabled(true);
+		parameterBox.enabled(true);
+		statusBar.text("Gotowy");
+		parameterBox.focus();
+		return 0;
+	}
+	
 	
 	this()
 	{
@@ -264,6 +305,12 @@ class MainWindow: dfl.form.Form
 			text = "Losuj ł&ukowo";
 			index = 1;
 			click ~= &dataMenuArcRandom_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Diagram &losowy";
+			index = 2;
+			click ~= &dataMenuArcExample_click;
 			mpop.menuItems.add(mi);
 		}
 		
@@ -467,6 +514,13 @@ class MainWindow: dfl.form.Form
 		}
 		dialog.dispose();
 		delete dialog;
+	}
+	
+	
+	private void dataMenuArcExample_click(Object sender, EventArgs ea) {
+		if (processing) delete processing;
+		processing = new Thread(&(this.thArcExamplePoset));
+		processing.start();
 	}
 	
 	
