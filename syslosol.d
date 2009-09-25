@@ -735,12 +735,12 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		return true;
 	}
 	uint[] extractGreedyPath(uint path, ArcPoset D) {
-		try {
+		/+try {
 			if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
 		} catch (Exception ex) {
 			debug writefln("extractGreedyPath: isGreedy failure");
 			throw ex;
-		}
+		}+/
 		
 		uint[] result;
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
@@ -856,12 +856,12 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	}
 	
 	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
-		try {
+		/+try {
 			if (!(isGreedy(path,D))) throw new Exception("Not a greedy path");
 		} catch (Exception ex) {
 			debug writefln("subLineExt: isGreedy failure");
 			throw ex;
-		}
+		}+/
 		//L ~= extractGreedyPath(path, D);
 		L.length = L.length + 1;
 		L[length - 1] = extractGreedyPath(path, D);

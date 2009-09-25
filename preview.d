@@ -24,11 +24,12 @@ or see <http://www.gnu.org/licenses/>.
 */
 
 private {
-	import dfl.all;
+	private import dfl.all;
 	
-	import structure;
+	private import structure;
+	private import syslosol;
 	static import std.string;
-	import std.random;
+	private import std.random;
 }
 
 
@@ -211,6 +212,51 @@ class Preview: dfl.panel.Panel
 	}
 	
 	
+	private int[uint] arrangeArcTiers(ArcPoset P) {
+		int[uint] result;
+		P.compactize();
+		P.topologize();
+		uint verts = P.getVerts();
+		int[][] usedTiers;
+		usedTiers.length = verts;
+		uint[uint] head, tail;
+		head = P.getHead();
+		tail = P.getTail();
+		uint[][] inarc, outarc;
+		inarc = P.getInarc();
+		outarc = P.getOutarc();
+		foreach (uint arc; tail.keys) {
+			if (head[arc] == tail[arc] + 1) {
+				int freeRoom = 0;
+				while (containsInt(usedTiers[head[arc]], freeRoom)) {
+					if (freeRoom == 0) {
+						freeRoom = 1;
+					} else {
+						freeRoom = freeRoom > 0 ? -freeRoom : -freeRoom + 1;
+					}
+				}
+				usedTiers[head[arc]].length = usedTiers[head[arc]].length + 1;
+				usedTiers[head[arc]][length - 1] = freeRoom;
+				result[arc] = freeRoom;
+			} else {
+				
+			}
+		}
+		
+		return result;
+	}
+	
+	
+	void drawArcDiagram(ArcPoset P, uint[][] chains = []) {
+		int[uint] tiers;
+		tiers = arrangeArcTiers(P);
+		uint verts = P.getVerts();
+		const uint space = 30;
+		
+		
+	}
+	
+	
 	private void this_click(Object sender, EventArgs lea) {
 		//this.backColor = Color.fromArgb(0, 255, 0, 0);
 		Graphics g = this.createGraphics();
@@ -221,4 +267,13 @@ class Preview: dfl.panel.Panel
 	}
 	
 	
+}
+
+protected bool containsInt(int[] a, int elmt) {
+	uint i;
+	
+	while (a.length > i) {
+		if (a[i++] == elmt) return true;
+		}
+	return false;
 }
