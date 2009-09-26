@@ -30,6 +30,8 @@ private {
 	private import syslosol;
 	static import std.string;
 	private import std.random;
+	private import std.stdio;
+	private import std.math;
 }
 
 
@@ -218,7 +220,7 @@ class Preview: dfl.panel.Panel
 		P.topologize();
 		uint verts = P.getVerts();
 		int[][] usedTiers;
-		usedTiers.length = verts;
+		usedTiers.length = verts - 1;
 		uint[uint] head, tail;
 		head = P.getHead();
 		tail = P.getTail();
@@ -228,21 +230,36 @@ class Preview: dfl.panel.Panel
 		foreach (uint arc; tail.keys) {
 			if (head[arc] == tail[arc] + 1) {
 				int freeRoom = 0;
-				while (containsInt(usedTiers[head[arc]], freeRoom)) {
+				while (containsInt(usedTiers[tail[arc]], freeRoom)) {
 					if (freeRoom == 0) {
 						freeRoom = 1;
 					} else {
 						freeRoom = freeRoom > 0 ? -freeRoom : -freeRoom + 1;
 					}
 				}
-				usedTiers[head[arc]].length = usedTiers[head[arc]].length + 1;
-				usedTiers[head[arc]][length - 1] = freeRoom;
+				usedTiers[tail[arc]].length = usedTiers[tail[arc]].length + 1;
+				usedTiers[tail[arc]][length - 1] = freeRoom;
 				result[arc] = freeRoom;
 			} else {
-				
+				int start = head[arc] - tail[arc] - 1;
+				bool found = false;
+				while (!found) {
+					found = true;
+					for (uint i = tail[arc]; i < head[arc]; i++) {
+						if (containsInt(usedTiers[i], start)) {
+							found = false;
+							start = start > 0 ? -start : -start + 1;
+							break;
+						}
+					}
+				}
+				result[arc] = start;
+				for (uint i = tail[arc]; i < head[arc]; i++) {
+					usedTiers[i].length = usedTiers[i].length + 1;
+					usedTiers[i][length - 1] = start;
+				}
 			}
 		}
-		
 		return result;
 	}
 	
@@ -251,9 +268,64 @@ class Preview: dfl.panel.Panel
 		int[uint] tiers;
 		tiers = arrangeArcTiers(P);
 		uint verts = P.getVerts();
-		const uint space = 30;
+		const uint space = 60;
+		uint n = P.getN();
+		uint[uint] tail, head;
+		tail = P.getTail();
+		head = P.getHead();
+		debug writefln(tiers);
 		
-		
+		uint tierHeight = cast(uint)ceil(cast(double)space / 3.0);
+		uint gridWidth, gridHeight;
+		gridWidth = verts * space;
+		int tierMin, tierMax;
+		foreach (int tier; tiers) {
+			tierMax = tier > tierMax ? tier : tierMax;
+			tierMin = tier < tierMin ? tier : tierMin;
+		}
+		gridHeight = (tierMax - tierMin) * tierHeight + space;
+		uint graphicsWidth = this.width < gridWidth ? gridWidth : this.width;
+		uint graphicsHeight = this.height < gridHeight ? gridHeight : this.height;
+		MemoryGraphics g = new MemoryGraphics(graphicsWidth, graphicsHeight);
+		g.fillRectangle(Color.fromArgb(0, 255, 255, 255), 0, 0, g.width, g.height);
+		Point start = Point(space / 2, graphicsHeight / 2);
+		Point[] vertPoints;
+		vertPoints.length = verts;
+		for (uint i = 0; i < verts; i++) {
+			vertPoints[i] = start;
+			start = Point(start.x + space, start.y);
+		}
+		Color black = Color.fromArgb(0, 0, 0, 0);
+		Pen blackSolidPen = new Pen(black, PenStyle.DASH_DOT);
+		Pen blackDashPen = new Pen(black);
+		Point A, B, C, D;
+		foreach (uint arc; tiers.keys) {
+			A = vertPoints[tail[arc]];
+			D = vertPoints[head[arc]];
+			B = Point(A.x + tierHeight, A.y - (tierHeight * tiers[arc]));
+			C = Point(D.x - tierHeight, D.y - (tierHeight * tiers[arc]));
+			drawBezierArrow(g, A, B, C, D, arc >= n ? blackDashPen : blackSolidPen);
+		}
+		g.flush();
+		Bitmap b = g.toBitmap();
+		this.scrollSize(Size(graphicsWidth, graphicsHeight));
+		pictureBox1.dock(DockStyle.FILL);
+		pictureBox1.redraw();
+		pictureBox1.refresh();
+		pictureBox1.image = b;
+		pictureBox1.redraw();
+		pictureBox1.refresh();
+		this.redraw();
+		this.refresh();
+		delete g;
+		return;
+	}
+	
+	
+	private void drawBezierArrow(Graphics g, Point A, Point B, Point C, Point D, Pen pen) {
+		if (g is null || pen is null) return;
+		g.drawBezier(pen, A, B, C, D);
+		return;
 	}
 	
 	

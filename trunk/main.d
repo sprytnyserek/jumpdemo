@@ -313,6 +313,17 @@ class MainWindow: dfl.form.Form
 			click ~= &dataMenuArcExample_click;
 			mpop.menuItems.add(mi);
 		}
+		with (mi = new MenuItem) {
+			text = "-";
+			index = 3;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Widok diagramu łukowe&go";
+			index = 4;
+			click ~= &dataMenuArcView_click;
+			mpop.menuItems.add(mi);
+		}
 		
 	}
 	
@@ -521,6 +532,13 @@ class MainWindow: dfl.form.Form
 		if (processing) delete processing;
 		processing = new Thread(&(this.thArcExamplePoset));
 		processing.start();
+	}
+	
+	
+	private void dataMenuArcView_click(Object sender, EventArgs ea) {
+		if (!(this.aP)) return;
+		if (processing) delete processing;
+		panel1.drawArcDiagram(aP);
 	}
 	
 	
