@@ -296,7 +296,7 @@ class Preview: dfl.panel.Panel
 			start = Point(start.x + space, start.y);
 		}
 		Color black = Color.fromArgb(0, 0, 0, 0);
-		Pen blackSolidPen = new Pen(black, PenStyle.DASH_DOT);
+		Pen blackSolidPen = new Pen(black, PenStyle.DOT);
 		Pen blackDashPen = new Pen(black);
 		Point A, B, C, D;
 		foreach (uint arc; tiers.keys) {
