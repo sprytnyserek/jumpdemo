@@ -339,10 +339,16 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 				else branchResult.length = 0;
 			}
 			// TU JEST COS NIE TAK
-			if ((result.length == 0) || ((branchResult.length > 0) && (branchResult.length < k + 1) && (branchResult.length < result.length))) {
+			/+if ((result.length == 0) || ((branchResult.length > 0) && (branchResult.length < k + 1) && (branchResult.length < result.length))) {
 				result.length = 0;
 				result.length = branchResult.length;
 				result = branchResult[];
+			}+/
+			if ((branchResult.length > 0) && (branchResult.length < k + 1)) {
+				result.length = 0;
+				result.length = branchResult.length;
+				result = branchResult[];
+				break;
 			}
 		}
 	}

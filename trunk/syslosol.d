@@ -444,7 +444,65 @@ class ArcPoset : Poset {
 			}
 		}
 		verts = v + 1;
+		debug writefln("topologic map: ", result);
 	}
+	
+	
+	/+private void topologizeAt(uint v, inout uint[][] inarc, inout uint[][] outarc, inout uint[] result, inout uint counter, inout bool[] numberized) {
+		if (numberized[v]) return;
+		numberized[v] = true;
+		foreach (uint i; inarc[v]) {
+			if (inarc[tail[i]].length != 0 && result[tail[i]] == 0) {
+				topologizeAt(tail[i], inarc, outarc, result, counter, numberized);
+			}
+		}
+		result[v] = counter++;
+		foreach (uint i; outarc[v]) {
+			topologizeAt(head[i], inarc, outarc, result, counter, numberized);
+		}
+	}
+	
+	void topologize() {
+		uint[][] inarc, outarc;
+		inarc = this.getInarc();
+		outarc = this.getOutarc();
+		uint[] result;
+		result.length = this.verts;
+		
+		uint start;
+		bool found = false;
+		for (uint i = 0; i < this.verts; i++) {
+			if (inarc[i].length == 0) {
+				start = i;
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			return;
+		}
+		result[start] = 0;
+		uint counter = 1;
+		bool[] numberized;
+		numberized.length = this.verts;
+		foreach (uint i; outarc[start]) {
+			topologizeAt(head[i], inarc, outarc, result, counter, numberized);
+		}
+		foreach (uint i; tail.keys) {
+			tail[i] = result[tail[i]];
+			head[i] = result[head[i]];
+		}
+		uint v;
+		foreach (uint i; head.keys) {
+			if (head[i] > v) {
+				v = head[i];
+			}
+			if (tail[i] > v) {
+				v = tail[i];
+			}
+		}
+		verts = v + 1;
+	}+/
 	
 	
 	uint[][] getInarc() {
@@ -568,6 +626,12 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
+		debug if (!(P.isArcAcyclic())) {
+			writefln("random arc diagram is not acyclic!");
+			char[] buf;
+			while ((buf = readln()) != null) {
+			}
+		}
 		P.compactize();
 		debug writefln("compact:");
 		debug writefln(P.getTail());
@@ -575,6 +639,12 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
+		debug if (!(P.isArcAcyclic())) {
+			writefln("random arc diagram is not acyclic!");
+			char[] buf;
+			while ((buf = readln()) != null) {
+			}
+		}
 		P.topologize();
 		debug writefln("topologized:");
 		debug writefln(P.getTail());
@@ -582,7 +652,72 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
+		debug if (!(P.isArcAcyclic())) {
+			writefln("random arc diagram is not acyclic!");
+			char[] buf;
+			while ((buf = readln()) != null) {
+			}
+		}
 		return P;
+	}
+	
+	private uint[] managedBuildCeiling(uint elmt, inout uint[] result, inout uint[][] outarc) {
+		if (elmt >= verts) return [];
+		if (contains(result, elmt)) return [];
+		
+		//result ~= [elmt];
+		result.length = result.length + 1;
+		result[length - 1] = elmt;
+		
+		foreach (uint i; outarc[elmt]) {
+			managedBuildCeiling(this.head[i], result, outarc);
+		}
+		
+		return result;
+	}
+	
+	private bool isArcAcyclic() {
+		uint[] ceiling;
+		uint[][] inarc, outarc;
+		inarc = this.getInarc();
+		outarc = this.getOutarc();
+		for (uint i = 0; i < this.verts; i++) {
+			//while (contains(inlist[i], i)) remove(inlist[i], index(inlist[i], i));
+			//while (contains(outlist[i], i)) remove(outlist[i], index(outlist[i], i));
+			
+			// check for loops
+			foreach (uint j; inarc[i]) {
+				if (tail[j] == i) {
+					// DEBUG INFO ?
+					return false;
+				}
+			}
+			foreach (uint j; outarc[i]) {
+				if (head[j] == i) {
+					// DEBUG INFO ?
+					return false;
+				}
+			}
+		}
+		for (uint i = 0; i < this.verts; i++) {
+			ceiling.length = 0;
+			ceiling = managedBuildCeiling(i, ceiling, outarc);
+			foreach (uint j; ceiling) {
+				/+if (contains(outlist[j], i)) {
+					remove(outlist[j], index(outlist[j], i));
+					remove(inlist[i], index(inlist[i], j));
+				}+/
+				
+				// check for non-trivial cycles
+				foreach (uint k; outarc[j]) {
+					if (head[k] == j) {
+						// DEBUG INFO ?
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 	
 }
