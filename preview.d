@@ -139,7 +139,8 @@ class Preview: dfl.panel.Panel
 		//this.scrollSize(Size(this.width, this.height));
 		uint[] groups;
 		bool[] elmtInGroup;
-		groups.length = elmtInGroup.length = grid.length;
+		//groups.length = elmtInGroup.length = grid.length;
+		groups.length = elmtInGroup.length = P.getCurrency();
 		for (uint i = 0; i < groups.length; i++) groups[i] = uint.max;
 		for (uint i = 0; i < chains.length; i++) {
 			foreach (uint j; chains[i]) {
