@@ -29,7 +29,8 @@ class ReportWindow: dfl.form.Form
 		// Do not manually modify this function.
 		//~Entice Designer 0.8.5.02 code begins here.
 		//~DFL Form
-		text = "Report Window";
+		text = "Okno raportu";
+		visible = false;
 		clientSize = dfl.all.Size(284, 84);
 		//~DFL dfl.textbox.TextBox=textBox3
 		textBox3 = new dfl.textbox.TextBox();

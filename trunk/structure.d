@@ -346,7 +346,7 @@ class Poset {
 		}
 		if ((i == n) && (k == 2 * i)) {
 			this.setInOutList(inlist,outlist);
-			}
+		}
 		return 0;
 	}
 	

@@ -317,13 +317,24 @@ class Preview: dfl.panel.Panel
 				elmtPens[i] = new Pen(black, PenStyle.DOT);
 			}
 		}
+		Color[] elmtColors;
+		elmtColors.length = n;
+		for (uint i = 0; i < elmtColors.length; i++) {
+			elmtColors[i] = black;
+		}
+		for (uint i = 0; i < chains.length; i++) {
+			foreach (uint j; chains[i]) {
+				elmtColors[j] = grpColors[i];
+			}
+		}
 		Point A, B, C, D;
 		foreach (uint arc; tiers.keys) {
 			A = vertPoints[tail[arc]];
 			D = vertPoints[head[arc]];
 			B = Point(A.x + tierHeight, A.y - (tierHeight * tiers[arc]));
 			C = Point(D.x - tierHeight, D.y - (tierHeight * tiers[arc]));
-			drawBezierArrow(g, A, B, C, D, arc >= n ? blackDashPen : elmtPens[arc]);
+			drawBezierArrow(g, A, B, C, D, arc >= n ? blackDashPen : elmtPens[arc], 
+						arc >= n ? black : elmtColors[arc], arc < n ? std.string.toString(arc) : "");
 			//g.fillRectangle(Color.fromArgb(0, 0, 0, 0), center.x - 4, center.y - 4, 8, 8);
 			//g.drawLine(blackDashPen, B, C);
 			//g.drawEllipse(blackDashPen, A.x - 3, A.y - 3, 6, 6);
@@ -347,13 +358,23 @@ class Preview: dfl.panel.Panel
 	}
 	
 	
-	private void drawBezierArrow(Graphics g, Point A, Point B, Point C, Point D, Pen pen) {
+	private void drawBezierArrow(Graphics g, Point A, Point B, Point C, Point D, Pen pen, Color color, char[] supscript = "") {
 		if (g is null || pen is null) return;
 		Point c = Point(cast(uint)(cast(double)(A.x) / 8.0 + 3.0 * cast(double)(B.x) / 8.0 + 3.0 * cast(double)(C.x) / 8.0 + cast(double)(D.x) / 8.0), 
 					cast(uint)(cast(double)(A.y) / 8.0 + 3.0 * cast(double)(B.y) / 8.0 + 3.0 * cast(double)(C.y) / 8.0 + cast(double)(D.y) / 8.0));
 		g.drawBezier(pen, A, B, C, D);
 		g.drawLine(pen, c.x - 5, c.y - 3, c.x + 5, c.y);
 		g.drawLine(pen, c.x - 5, c.y + 3, c.x + 5, c.y);
+		if (supscript.length > 0) {
+			TextFormat frmt = new TextFormat();
+			frmt.alignment(TextAlignment.LEFT);
+			frmt.leftMargin(1);
+			frmt.rightMargin(1);
+			//Rect r = Rect(c.x - 5, c.y - 18, c.x + 5, c.y - 3);
+			Rect r = Rect(c.x + 5, c.y - 5, c.x + 15, c.y + 5);
+			g.fillRectangle(Color.fromArgb(0, 255, 255, 255), c.x + 5, c.y - 5, 10, 10);
+			g.drawText(supscript, font, color, r, frmt);
+		}
 		return;
 	}
 	
