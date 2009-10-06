@@ -277,11 +277,18 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 	 */
 	if (maxAccess.length > k + 1) return [];
 	if (maxAccess.length == k + 1) { // find the ladder decomposition
+		//debug writef("ladder decomp...");
 		result = ladderDecomp(node.P, node.gottenElmts);
 		// sprawdzenie, czy wynik rozkladu drabinowego ma oczekiwana dlugosc
+		/+debug if (result.length == 0) {
+			writefln("not solved");
+		} else {
+			writefln("solution length: ", result.length - 1);
+		}+/
 		if ((result.length > 0) && (result.length <= k + 1)) result = [node.chain] ~ result; else result.length = 0;
 	}
 	else {
+		//debug writefln("branching into ", maxAccess.length, " subtrees...");
 		uint[][] branchResult;
 		foreach (uint i; maxAccess) {
 			branchResult.length = 0;
@@ -344,6 +351,11 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 				result.length = branchResult.length;
 				result = branchResult[];
 			}+/
+			/+debug if (branchResult.length == 0) {
+				writefln("branch not solved");
+			} else {
+				writefln("branch length: ", branchResult.length);
+			}+/
 			if ((branchResult.length > 0) && (branchResult.length < k + 1)) {
 				result.length = 0;
 				result.length = branchResult.length;
@@ -370,5 +382,15 @@ uint[][] linearExtensionByDecomp(Poset P, uint k = uint.max) {
 	uint[][] result;
 	TreeElmt topNode = new TreeElmt(P, []);
 	result = expEvaluate(topNode, k);
+	uint i = 0;
+	while (i < result.length) {
+		if (result[i].length == 0) {
+			result = result[0 .. i] ~ result[(i + 1) .. $];
+		} else {
+			i += 1;
+		}
+	}
+	debug writefln("wynik wg McCartin: ", result);
+	debug if (result.length > 0) writefln(result.length - 1, " skokow");
 	return result;
 }

@@ -115,7 +115,7 @@ class ArcPoset : Poset {
 	}
 	
 	void setTailHead(uint[uint] tail, uint[uint] head, uint n) {
-		writefln("setTailHead");
+		/+writefln("setTailHead");+/
 		/+if (tail.length == 0) throw new Exception("syslosol setTailHead: tail.length == 0");
 		if (head.length == 0) throw new Exception("syslosol setTailHead: head.length == 0");+/
 		if (tail.length != head.length) throw new Exception("syslosol setTailHead: tail-head length mismatch");
@@ -137,10 +137,10 @@ class ArcPoset : Poset {
 		foreach (uint key, uint value; tail) this.tail[key] = value;
 		foreach (uint key, uint value; head) this.head[key] = value;
 		uint max = 0;
-		debug writefln("tail: ", tail);
+		/+debug writefln("tail: ", tail);
 		debug writefln("head: ", head);
 		debug writefln("this.tail: ", this.tail);
-		debug writefln("this.head: ", this.head);
+		debug writefln("this.head: ", this.head);+/
 		foreach (uint key, uint value; head) {
 			if (value > max) max = value;
 		}
@@ -148,7 +148,7 @@ class ArcPoset : Poset {
 			if (value > max) max = value;
 		}
 		verts = max + 1;
-		debug writefln("verts: ", verts);
+		/+debug writefln("verts: ", verts);+/
 		this.n = n;
 		uint[][] inarc = getInarc(), outarc = getOutarc();
 		inlist.length = 0;
@@ -165,7 +165,7 @@ class ArcPoset : Poset {
 	
 	
 	void examplePoset() {
-		writefln("example poset");
+		/+writefln("example poset");+/
 		uint[uint] newTail;
 		uint[uint] newHead;
 		//newTail[0] = 0; newTail[1] = 2; newTail[2] = 1; newTail[3] = 0; newTail[4] = 2; newTail[5] = 1;
@@ -275,7 +275,7 @@ class ArcPoset : Poset {
 	 * Operacja zwierania diagramu łukowego posetu
 	 */
 	void compactize() {
-		debug writefln("compactize");
+		/+debug writefln("compactize");+/
 		uint[][] inarc, outarc;
 		uint[uint] newTail, newHead;
 		inarc = getInarc();
@@ -395,23 +395,141 @@ class ArcPoset : Poset {
 		inarc = getInarc();
 		outarc = getOutarc();
 		
-		foreach (uint i; newTail.keys) {
-			if (i >= n && (inarc[newTail[i]].length == 0 || outarc[newHead[i]].length == 0)) {
-				newTail.remove(i);
-				newHead.remove(i);
+		bool changed = true;
+		
+		while (changed) {
+			changed = false;
+			foreach (uint i; newTail.keys) {
+				if (i >= n && (inarc[newTail[i]].length == 0 || outarc[newHead[i]].length == 0)) {
+					newTail.remove(i);
+					newHead.remove(i);
+					changed = true;
+					break;
+				}
 			}
 		}
 		this.setTailHead(newTail, newHead, this.n);
+		
+		inarc = getInarc();
+		outarc = getOutarc();
+		newTail = getTail();
+		newHead = getHead();
+		
+		src.length = 0;
+		for (uint i = 0; i < inarc.length; i++) {
+			if (inarc[i].length == 0 && outarc[i].length > 0) {
+				src.length = src.length + 1;
+				src[length - 1] = i;
+			}
+		}
+		sink.length = 0;
+		for (uint i = 0; i < outarc.length; i++) {
+			if (outarc[i].length == 0 && inarc[i].length > 0) {
+				sink.length = sink.length + 1;
+				sink[length - 1] = i;
+			}
+		}
+		foreach (uint i; newTail.keys) {
+			for (uint j = 1; j < src.length; j++) {
+				if (newTail[i] == src[j]) {
+					newTail[i] = src[0];
+				}
+			}
+		}
+		foreach (uint i; newHead.keys) {
+			for (uint j = 1; j < sink.length; j++) {
+				if (newHead[i] == sink[j]) {
+					newHead[i] = sink[0];
+				}
+			}
+		}
+		for (uint i = 1; i < src.length; i++) {
+			foreach (uint j; newTail.keys) {
+				if (newTail[j] > src[i]) {
+					newTail[j] -= 1;
+				}
+			}
+			foreach (uint j; newHead.keys) {
+				if (newHead[j] > src[i]) {
+					newHead[j] -= 1;
+				}
+			}
+			for (uint j = i + 1; j < src.length; j++) {
+				src[j] -= 1;
+			}
+			for (uint j = 0; j < sink.length; j++) {
+				if (sink[j] > src[i]) sink[j] -= 1;
+			}
+		}
+		for (uint i = 1; i < sink.length; i++) {
+			foreach (uint j; newTail.keys) {
+				if (newTail[j] > sink[i]) {
+					newTail[j] -= 1;
+				}
+			}
+			foreach (uint j; newHead.keys) {
+				if (newHead[j] > sink[i]) {
+					newHead[j] -= 1;
+				}
+			}
+			for (uint j = i + 1; j < sink.length; j++) {
+				sink[j] -= 1;
+			}
+		}
+		this.setTailHead(newTail, newHead, this.n);
+		
+		/+inarc = getInarc();
+		outarc = getOutarc();
+		
+		uint indegi, indegpi, outdegi, outdegpi;
+		uint first, second;
+		
+		for (uint i = 0; i < verts; i++) {
+			indegi = indeg(i);
+			indegpi = pindeg(i);
+			outdegi = outdeg(i);
+			outdegpi = poutdeg(i);
+			if (indegi == 1 && indegi == indegpi && outdegi == 1 && outdegi == outdegpi) {
+				first = inarc[i][0];
+				second = outarc[i][0];
+				newHead[first] = newHead[second];
+				newTail.remove(second);
+				newHead.remove(second);
+			}
+		}
+		
+		this.setTailHead(newTail, newHead, this.n);
+		
+		inarc = getInarc();
+		outarc = getOutarc();
+		
+		changed = true;
+		
+		while (changed) {
+			changed = false;
+			foreach (uint arc; tail.keys) {
+				if (isPath(tail[arc], head[arc], arc)) {
+					debug writefln("USUWAM");
+					newTail.remove(arc);
+					newHead.remove(arc);
+					changed = true;
+					break;
+				}
+			}
+			if (changed) {
+				this.setTailHead(newTail, newHead, this.n);
+			}
+		}+/
 		
 		return;
 	}
 	
 	
-	private void topologizeAt(uint i, inout uint[] result, inout uint nr, inout bool[] numbered) {
+	private void topologizeAtOld(uint i, inout uint[] result, inout uint nr, inout bool[] numbered) {
 		numbered[i] = true;
 		foreach (uint j; tail.keys) {
 			if ((head[j] == i) && (!numbered[tail[j]])) {
-				topologizeAt(tail[j], result, nr, numbered);
+				topologizeAtOld(tail[j], result, nr, numbered);
 			}
 		}
 		result[i] = nr++;
@@ -429,7 +547,7 @@ class ArcPoset : Poset {
 		uint nr = 0;
 		bool[] numbered;
 		numbered.length = verts;
-		topologizeAt(begin, result, nr, numbered);
+		topologizeAtOld(begin, result, nr, numbered);
 		foreach (uint i; head.keys) {
 			tail[i] = result[tail[i]];
 			head[i] = result[head[i]];
@@ -444,7 +562,7 @@ class ArcPoset : Poset {
 			}
 		}
 		verts = v + 1;
-		debug writefln("topologic map: ", result);
+		/+debug writefln("topologic map: ", result);+/
 	}
 	
 	
@@ -505,6 +623,112 @@ class ArcPoset : Poset {
 	}+/
 	
 	
+	/+void topologize() {
+		// najpierw sprawdz, czy jest dokladnie jedno zrodlo i dokladnie jeden odplyw
+		uint[][] inarc, outarc;
+		bool srcFound, snkFound;
+		uint src, snk;
+		uint[] map;
+		bool[] numbered;
+		bool preNumbered;
+		bool allNull = true;
+		uint counter = 1;
+		
+		inarc = getInarc();
+		outarc = getOutarc();
+		for (uint i = 0; i < inarc.length; i++) {
+			if (inarc[i].length == 0 && outarc[i].length == 0) {
+				continue;
+			}
+			allNull = false;
+			if (inarc[i].length == 0 && !srcFound) {
+				srcFound = true;
+				src = i;
+			} else if (inarc[i].length == 0 && srcFound) {
+				debug writefln("tail: ", tail);
+				debug writefln("head: ", head);
+				debug writefln("inarc: ", inarc);
+				debug writefln("outarc: ", outarc);
+				throw new Exception("source duplicated");
+			}
+		}
+		if (allNull) {
+			verts = 0;
+			return;
+		}
+		allNull = true;
+		if (!srcFound) {
+			debug writefln("tail: ", tail);
+			debug writefln("head: ", head);
+			debug writefln("inarc: ", inarc);
+			debug writefln("outarc: ", outarc);
+			throw new Exception("source not found");
+		}
+		for (uint i = 0; i < outarc.length; i++) {
+			if (inarc[i].length == 0 && outarc[i].length == 0) {
+				continue;
+			}
+			allNull = false;
+			if (outarc[i].length == 0 && !snkFound) {
+				snkFound = true;
+				snk = i;
+			} else if (outarc[i].length == 0 && snkFound) {
+				debug writefln("tail: ", tail);
+				debug writefln("head: ", head);
+				debug writefln("inarc: ", inarc);
+				debug writefln("outarc: ", outarc);
+				throw new Exception("sink duplicated");
+			}
+		}
+		if (allNull) {
+			verts = 0;
+			return;
+		}
+		if (!snkFound) {
+			debug writefln("tail: ", tail);
+			debug writefln("head: ", head);
+			debug writefln("inarc: ", inarc);
+			debug writefln("outarc: ", outarc);
+			throw new Exception("sink not found");
+		}
+		
+		// start topologizing
+		map.length = verts;
+		map[src] = 0;
+		uint last = src;
+		numbered.length = verts;
+		numbered[src] = true;
+		
+		while (last != snk) {
+			for (uint i = 0; i < verts; i++) {
+				if (numbered[i] || ((inarc[i].length == 0) && (outarc[i].length == 0))) {
+					continue;
+				}
+				preNumbered = true;
+				foreach (uint arc; inarc[i]) {
+					if (!numbered[tail[arc]]) {
+						preNumbered = false;
+						break;
+					}
+				}
+				if (preNumbered) {
+					map[i] = counter++;
+					numbered[i] = true;
+					last = i;
+					if (i == snk) {
+						break;
+					}
+				}
+			}
+		}
+		foreach (uint i; tail.keys) {
+			tail[i] = map[tail[i]];
+			head[i] = map[head[i]];
+		}
+		verts = counter;
+	}+/
+	
+	
 	uint[][] getInarc() {
 		uint[][] result;
 		result.length = verts;
@@ -540,6 +764,55 @@ class ArcPoset : Poset {
 	}
 	
 	
+	bool isPath(uint a, uint b, uint exclude = 0) {
+		uint[][] inarc, outarc;
+		
+		inarc = getInarc();
+		outarc = getOutarc();
+		//debug writefln("outarc.length: ", outarc.length);
+		
+		foreach (uint arc; tail.keys) {
+			if (arc != exclude && tail[arc] == a && head[arc] == b) {
+				return true;
+			}
+		}
+		
+		uint[] ceiling;
+		ceiling.length = 1;
+		ceiling[0] = a;
+		uint count = 1, index, counter;
+		
+		while (count > 0) {
+			counter = count;
+			count = 0;
+			index = ceiling.length;
+			for (uint i = index - 1; i >= index - counter; i--) {
+				/+debug writefln(outarc.length);
+				debug writefln(ceiling.length);
+				debug writefln("i ", i);
+				debug writefln(ceiling[i]);+/
+				foreach (uint arc; outarc[ceiling[i]]) {
+					if (arc == exclude) {
+						if (i == 0) break;
+						continue;
+					}
+					if (head[arc] == b) {
+						return true;
+					}
+					if (!contains(ceiling, head[arc])) {
+						ceiling.length = ceiling.length + 1;
+						ceiling[length - 1] = head[arc];
+						count += 1;
+					}
+				}
+				if (i == 0) break;
+			}
+		}
+		
+		return false;
+	}
+	
+	
 	static synchronized ArcPoset randomPosetByArc(uint n = 0, uint s = 0, float p = 0.0, float q = 0.0) { // n == 0 => losowa liczba elementow (lukow rzeczywistych); dn == 0 => poset N-wolny
 		ArcPoset P = new ArcPoset();
 		uint[uint] randomTail, randomHead;
@@ -571,6 +844,7 @@ class ArcPoset : Poset {
 				}
 				inarc = P.getInarc();
 				outarc = P.getOutarc();
+				// zmiana isPath
 				if (P.isPath(b, a, inarc, outarc)) {
 					randomTail[i] = b;
 					randomHead[i] = a;
@@ -613,6 +887,7 @@ class ArcPoset : Poset {
 			} while (a == b);
 			inarc = P.getInarc();
 			outarc = P.getOutarc();
+			// zmiana isPath
 			if ((!(P.isPath(a, b, inarc, outarc))) && (!(P.isPath(b, a, inarc, outarc)))) {
 				randomTail[j] = a;
 				randomHead[j] = b;
@@ -626,12 +901,12 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
-		debug if (!(P.isArcAcyclic())) {
-			writefln("random arc diagram is not acyclic!");
+		if (!(P.isArcAcyclic())) {
+			/+writefln("random arc diagram is not acyclic!");
 			char[] buf;
-			while ((buf = readln()) != null) {
+			while ((buf = readln()) != null) {+/
+			return ArcPoset.randomPosetByArc(n, s, p, q);
 			}
-		}
 		P.compactize();
 		debug writefln("compact:");
 		debug writefln(P.getTail());
@@ -639,12 +914,12 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
-		debug if (!(P.isArcAcyclic())) {
-			writefln("random arc diagram is not acyclic!");
+		if (!(P.isArcAcyclic())) {
+			/+writefln("random arc diagram is not acyclic!");
 			char[] buf;
-			while ((buf = readln()) != null) {
+			while ((buf = readln()) != null) {+/
+			return ArcPoset.randomPosetByArc(n, s, p, q);
 			}
-		}
 		P.topologize();
 		debug writefln("topologized:");
 		debug writefln(P.getTail());
@@ -652,12 +927,16 @@ class ArcPoset : Poset {
 		debug writefln("liczba wierzcholkow: ", P.getVerts());
 		debug writefln("inlist: ", P.getInlist());
 		debug writefln("outlist: ", P.getOutlist());
-		debug if (!(P.isArcAcyclic())) {
-			writefln("random arc diagram is not acyclic!");
+		if (!(P.isArcAcyclic())) {
+			/+writefln("random arc diagram is not acyclic!");
 			char[] buf;
-			while ((buf = readln()) != null) {
+			while ((buf = readln()) != null) {+/
+			return ArcPoset.randomPosetByArc(n, s, p, q);
 			}
-		}
+		uint[][] inlist, outlist;
+		inlist = P.getInlist();
+		outlist = P.getOutlist();
+		P.setInOutList(inlist, outlist);
 		return P;
 	}
 	
@@ -943,15 +1222,15 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 			}
 			ta = D.tail[a];
 		}
-		debug writefln(path, " removed");
+		/+debug writefln(path, " removed");+/
 		D.compactize();
 		D.topologize();
 		updateGreedyPaths(D, S, W);
 	}
 	
 	void remove(uint path, ArcPoset D, inout uint[] S, inout uint[] W) { // D is inout object
-		debug writefln("D.tail: ", D.tail);
-		debug writefln("D.head: ", D.head);
+		/+debug writefln("D.tail: ", D.tail);
+		debug writefln("D.head: ", D.head);+/
 		if (!D) throw new Exception("Fatal: inout object of ArcPoset become null during processing");
 		
 		uint[][] inarc = D.getInarc(), outarc = D.getOutarc();
@@ -961,7 +1240,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		greedyPath = extractGreedyPath(path, D);
 		newTail = D.getTail();
 		newHead = D.getHead();
-		debug writefln("greedy path to remove: ", greedyPath);
+		/+debug writefln("greedy path to remove: ", greedyPath);+/
 		foreach (uint a; greedyPath) {
 			newTail.remove(a);
 			newHead.remove(a);
@@ -987,7 +1266,7 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 		D.compactize();
 		D.topologize();
 		updateGreedyPaths(D, S, W);
-		debug writefln("D: ", D.tail, " ", D.head);
+		/+debug writefln("D: ", D.tail, " ", D.head);+/
 	}
 	
 	void subLineExt(uint path, inout uint[][] L, ArcPoset D, inout uint[] S, inout uint[] W) { // D is ind object - must be a clear copy
@@ -1030,25 +1309,25 @@ private void optLineExt(ArcPoset D, inout uint[][] Lopt) {
 	uint n = D.n;
 	
 	updateGreedyPaths(D, S, W);
-	writefln("1 S: ", S);
-	writefln("1 W: ", W);
+	/+writefln("1 S: ", S);
+	writefln("1 W: ", W);+/
 	
 	uint[] greedyPath;
 	
 	while (S.length > 0) {
-		writefln("S: ", S);
-		writefln("Extracting greedy path ", S[0]);
+		/+writefln("S: ", S);
+		writefln("Extracting greedy path ", S[0]);+/
 		//L = extractGreedyPath(S[0], D) ~ L;
 		greedyPath = extractGreedyPath(S[0], D);
 		L.length = L.length + 1;
 		L[length - 1] = greedyPath.dup;
 		greedyPath.length = 0;
 		
-		writefln("Extracted. ", L.length, " Removing ", S[0]);
-		writefln("L: ", L);
+		/+writefln("Extracted. ", L.length, " Removing ", S[0]);
+		writefln("L: ", L);+/
 		remove(S[0], D, S, W);
-		writefln("S: ", S);
-		writefln("W: ", W);
+		/+writefln("S: ", S);
+		writefln("W: ", W);+/
 		/+char[] buf;
 		buf.length = 0;
 		readln(stdin, buf);+/
@@ -1080,6 +1359,7 @@ uint[][] arcOptLineExt(ArcPoset P) {
 	ArcPoset D = new ArcPoset();
 	D.setTailHead(P.getTail(), P.getHead(), P.getN());
 	optLineExt(D, result);
-	debug writefln("result: ", result);
-	return result.reverse;
+	debug writefln("wynik wg Sysly: ", result);
+	debug writefln(result.length - 1, " skokow");
+	return result;
 }

@@ -39,6 +39,7 @@ import std.thread;
 import std.string;
 import std.format;
 import std.conv;
+import std.c.time;
 
 /* start of internal imports */
 import structure;
@@ -48,6 +49,7 @@ import preview;
 import painter;
 import randomposet;
 import randomarcposet;
+import entervert;
 /* end of internal imports */
 
 class MainWindow: dfl.form.Form
@@ -74,12 +76,14 @@ class MainWindow: dfl.form.Form
 	char[] filename;
 	MenuItem mpop, mi;
 	Label previewLabel;
+	bool arcView; /* false - vertex diagram view; true - arc diagram view */
+	double processingTime = 0.0;
 	
 	private int thOpen() {
 		P = new Poset();
 		statusBar.text("Otwieranie...");
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
+		//menu.menuItems[0].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[0].enabled(false);
 		P.fromFile(filename);
 		if (this.aP) delete this.aP;
 		this.aP = new ArcPoset();
@@ -89,14 +93,16 @@ class MainWindow: dfl.form.Form
 		//char[] resultString = "";
 		//for (uint i = 0; i < result.length; i++) for (uint j = 0; j < result[i].length; j++) resultString ~= std.string.toString(result[i][j]) ~ " ";
 		//textBox1.text(resultString);
+		this.result.length = 0;
 		PosetPainter painter = new PosetPainter(P);
 		//uint[][] ext = linearExtensionByDecomp(P, 7);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		panel1.drawDiagram(P, pos);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[0].menuItems[0].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[0].menuItems[0].enabled(true);
 		this.P = P;
 		parameterBox.enabled(true);
+		sysloRun.enabled(true);
 		statusBar.text("Gotowy");
 		parameterBox.focus();
 		return 0;
@@ -108,17 +114,25 @@ class MainWindow: dfl.form.Form
 		statusBar.text("Przetwarzanie...");
 		parameterBox.enabled(false);
 		runButton.enabled(false);
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
+		//menu.menuItems[0].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[0].enabled(false);
 		this.result.length = 0;
 		uint k;
 		k = toUint(parameterBox.lines[0]);
-		this.result = linearExtensionByDecomp(P, k);
-		PosetPainter painter = new PosetPainter(P);
-		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
-		panel1.drawDiagram(P, pos, this.result);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[0].menuItems[0].enabled(true);
+		clock_t start, finish;
+		start = clock();
+		this.result = linearExtensionByDecomp(aP, k);
+		finish = clock();
+		debug writefln("processing time: ", cast(double)(finish - start) / cast(double)(CLOCKS_PER_SEC) * 1000.0, " ms");
+		if (arcView) {
+			panel1.drawArcDiagram(aP, this.result);
+		} else {
+			PosetPainter painter = new PosetPainter(aP);
+			uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+			panel1.drawDiagram(aP, pos, this.result);
+		}
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[0].menuItems[0].enabled(true);
 		parameterBox.enabled(true);
 		runButton.enabled(true);
 		statusBar.text("Zakończono");
@@ -131,17 +145,25 @@ class MainWindow: dfl.form.Form
 		statusBar.text("Przetwarzanie...");
 		parameterBox.enabled(false);
 		runButton.enabled(false);
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[1].enabled(false);
+		//menu.menuItems[0].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[1].enabled(false);
 		this.result.length = 0;
+		clock_t start, finish;
+		start = clock();
 		this.result = arcOptLineExt(aP);
-		PosetPainter painter = new PosetPainter(P);
-		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
-		panel1.drawDiagram(P, pos, this.result);
-		menu.menuItems[1].menuItems[1].enabled(true);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[0].menuItems[0].enabled(true);
+		finish = clock();
+		debug writefln("processing time: ", cast(double)(finish - start) / cast(double)(CLOCKS_PER_SEC) * 1000.0, " ms");
+		if (arcView) {
+			panel1.drawArcDiagram(aP, this.result);
+		} else {
+			PosetPainter painter = new PosetPainter(aP);
+			uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+			panel1.drawDiagram(aP, pos, this.result);
+		}
+		//menu.menuItems[1].menuItems[1].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[0].menuItems[0].enabled(true);
 		parameterBox.enabled(true);
 		runButton.enabled(true);
 		statusBar.text("Zakończono");
@@ -151,9 +173,9 @@ class MainWindow: dfl.form.Form
 	
 	private int thVertexRandomPoset() {
 		statusBar.text("Losowanie...");
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[1].enabled(false);
+		//menu.menuItems[0].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[1].enabled(false);
 		parameterBox.text = "";
 		runButton.enabled(false);
 		Poset P;
@@ -162,12 +184,17 @@ class MainWindow: dfl.form.Form
 		if (this.aP) delete this.aP;
 		this.aP = new ArcPoset();
 		this.aP.setInOutList(P.getInlist(), P.getOutlist());
-		PosetPainter painter = new PosetPainter(P);
-		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
-		panel1.drawDiagram(P, pos);
-		menu.menuItems[1].menuItems[1].enabled(true);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[0].menuItems[0].enabled(true);
+		this.result.length = 0;
+		if (arcView) {
+			panel1.drawArcDiagram(aP, this.result);
+		} else {
+			PosetPainter painter = new PosetPainter(aP);
+			uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+			panel1.drawDiagram(aP, pos, this.result);
+		}
+		//menu.menuItems[1].menuItems[1].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[0].menuItems[0].enabled(true);
 		sysloRun.enabled(true);
 		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
@@ -178,9 +205,9 @@ class MainWindow: dfl.form.Form
 	
 	private int thArcRandomPoset() {
 		statusBar.text("Losowanie...");
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[1].enabled(false);
+		//menu.menuItems[0].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[1].enabled(false);
 		parameterBox.text = "";
 		runButton.enabled(false);
 		ArcPoset aP;
@@ -190,12 +217,17 @@ class MainWindow: dfl.form.Form
 		this.aP = new ArcPoset();
 		this.aP.setInOutList(P.getInlist(), P.getOutlist());+/
 		this.P = cast(Poset)(this.aP);
-		PosetPainter painter = new PosetPainter(P);
-		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
-		panel1.drawDiagram(P, pos);
-		menu.menuItems[1].menuItems[1].enabled(true);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[0].menuItems[0].enabled(true);
+		this.result.length = 0;
+		if (arcView) {
+			panel1.drawArcDiagram(aP, this.result);
+		} else {
+			PosetPainter painter = new PosetPainter(aP);
+			uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+			panel1.drawDiagram(aP, pos, this.result);
+		}
+		//menu.menuItems[1].menuItems[1].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[0].menuItems[0].enabled(true);
 		sysloRun.enabled(true);
 		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
@@ -204,9 +236,9 @@ class MainWindow: dfl.form.Form
 	}
 	
 	private int thArcExamplePoset() {
-		menu.menuItems[0].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[0].enabled(false);
-		menu.menuItems[1].menuItems[1].enabled(false);
+		//menu.menuItems[0].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[0].enabled(false);
+		//menu.menuItems[1].menuItems[1].enabled(false);
 		parameterBox.text = "";
 		runButton.enabled(false);
 		ArcPoset aP = new ArcPoset();
@@ -234,9 +266,9 @@ class MainWindow: dfl.form.Form
 		PosetPainter painter = new PosetPainter(P);
 		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
 		panel1.drawDiagram(P, pos);
-		menu.menuItems[1].menuItems[1].enabled(true);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[0].menuItems[0].enabled(true);
+		//menu.menuItems[1].menuItems[1].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[0].menuItems[0].enabled(true);
 		sysloRun.enabled(true);
 		parameterBox.enabled(true);
 		statusBar.text("Gotowy");
@@ -267,7 +299,7 @@ class MainWindow: dfl.form.Form
 		previewLabel.parent = controlPanel;
 		controlPanel.redraw();
 		menu = new MainMenu();
-		with (mpop = new MenuItem) {
+		/+with (mpop = new MenuItem) {
 			text = "&Plik";
 			index = 0;
 			this.menu.menuItems.add(mpop);
@@ -288,41 +320,101 @@ class MainWindow: dfl.form.Form
 			index = 2;
 			click ~= &fileExitMenu_click;
 			mpop.menuItems.add(mi);
-		}
+		}+/
 		
 		with (mpop = new MenuItem) {
 			text = "&Dane";
-			index = 1;
+			index = 0;
 			this.menu.menuItems.add(mpop);
 		}
 		with (mi = new MenuItem) {
-			text = "Losuj &wierzchołkowo";
+			text = "&Z pliku";
 			index = 0;
+			click ~= &dataFromFileMenu_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "&Do pliku";
+			index = 1;
+			click ~= &dataToFileMenu_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "-";
+			index = 2;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Wprowadź wierzchołkowo...";
+			index = 3;
+			click ~= &dataMenuVertexEnter_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Wprowadź łukowo...";
+			index = 4;
+			click ~= &dataMenuArcEnter_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "-";
+			index = 5;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Losuj &wierzchołkowo";
+			index = 6;
 			click ~= &dataMenuVertexRandom_click;
 			mpop.menuItems.add(mi);
 		}
 		with (mi = new MenuItem) {
 			text = "Losuj ł&ukowo";
-			index = 1;
+			index = 7;
 			click ~= &dataMenuArcRandom_click;
 			mpop.menuItems.add(mi);
 		}
-		with (mi = new MenuItem) {
+		/+with (mi = new MenuItem) {
 			text = "Diagram &losowy";
-			index = 2;
+			index = 8;
 			click ~= &dataMenuArcExample_click;
+			mpop.menuItems.add(mi);
+		}+/
+		
+		with (mpop = new MenuItem) {
+			text = "&Widok";
+			index = 1;
+			this.menu.menuItems.add(mpop);
+		}
+		with (mi = new MenuItem) {
+			text = "Diagram ł&ukowy";
+			index = 0;
+			click ~= &viewMenuArcView_click;
+			mpop.menuItems.add(mi);
+		}
+		with (mi = new MenuItem) {
+			text = "Diagram &wierzchołkowy";
+			index = 1;
+			click ~= &viewMenuVertView_click;
+			enabled = false;
 			mpop.menuItems.add(mi);
 		}
 		with (mi = new MenuItem) {
 			text = "-";
-			index = 3;
+			index = 2;
 			mpop.menuItems.add(mi);
 		}
 		with (mi = new MenuItem) {
-			text = "Widok diagramu łukowe&go";
-			index = 4;
-			click ~= &dataMenuArcView_click;
+			text = "W&yczyść wynik";
+			index = 3;
+			click ~= &viewMenuClearResult_click;
 			mpop.menuItems.add(mi);
+		}
+		
+		with (mpop = new MenuItem) {
+			text = "&Zakończ";
+			index = 2;
+			click ~= &exitMenu_click;
+			this.menu.menuItems.add(mpop);
 		}
 		
 	}
@@ -416,7 +508,62 @@ class MainWindow: dfl.form.Form
 		//textBox1.scrollBars(textBox1.scrollBars.HORIZONTAL);
 	}
 	
-	private void fileOpenMenu_click(Object sender, EventArgs ea) {
+	
+	private void runButton_click(Object sender, EventArgs ea) {
+		if (processing) delete processing;
+		processing = new Thread(&(this.thRunMcCartin));
+		processing.start();
+	}
+	
+	
+	private void stopButton_click(Object sender, EventArgs ea) {
+		if (processing) {
+			//processing.pause();
+			delete processing;
+			processing = null;
+		}
+		//menu.menuItems[0].menuItems[0].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[1].menuItems[1].enabled(true);
+		parameterBox.text = "";
+		parameterBox.enabled(true);
+		runButton.enabled(true);
+		statusBar.text("Przerwano");
+	}
+	
+	
+	private void sysloRun_click(Object sender, EventArgs ea) {
+		if (processing) delete processing;
+		processing = new Thread(&(this.thRunSyslo));
+		processing.start();
+	}
+	
+	
+	private void sysloStop_click(Object sender, EventArgs ea) {
+		if (processing) {
+			//processing.pause();
+			delete processing;
+			processing = null;
+		}
+		//menu.menuItems[0].menuItems[0].enabled(true);
+		//menu.menuItems[1].menuItems[0].enabled(true);
+		//menu.menuItems[1].menuItems[1].enabled(true);
+		parameterBox.text = "";
+		parameterBox.enabled(true);
+		runButton.enabled(true);
+		statusBar.text("Przerwano");
+	}
+	
+	
+	private void exitMenu_click(Object sender, EventArgs ea) {
+		DialogResult result;
+		result = msgBox("Czy na pewno zamknąć?", "Zamykanie", MsgBoxButtons.OK_CANCEL, MsgBoxIcon.INFORMATION);
+		if (result == DialogResult.CANCEL) return;
+		Application.exit();
+	}
+	
+	
+	private void dataFromFileMenu_click(Object sender, EventArgs ea) {
 		/+OpenFileDialog dialog = new OpenFileDialog();
 		dialog.multiselect = false;
 		dialog.showDialog();
@@ -446,54 +593,79 @@ class MainWindow: dfl.form.Form
 	}
 	
 	
-	private void runButton_click(Object sender, EventArgs ea) {
-		if (processing) delete processing;
-		processing = new Thread(&(this.thRunMcCartin));
-		processing.start();
-	}
-	
-	
-	private void stopButton_click(Object sender, EventArgs ea) {
-		if (processing) {
-			//processing.pause();
-			delete processing;
-			processing = null;
+	private void dataToFileMenu_click(Object sender, EventArgs ea) {
+		if (this.aP is null) return;
+		SaveFileDialog dialog = new SaveFileDialog();
+		dialog.overwritePrompt(true);
+		dialog.createPrompt(false);
+		dialog.title("Do pliku...");
+		dialog.defaultExt("txt");
+		DialogResult dialogResult = dialog.showDialog();
+		if (dialogResult == DialogResult.OK) {
+			char[] filename = dialog.fileName();
+			aP.toFile(filename);
 		}
-		menu.menuItems[0].menuItems[0].enabled(true);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[1].menuItems[1].enabled(true);
-		parameterBox.text = "";
-		parameterBox.enabled(true);
-		runButton.enabled(true);
-		statusBar.text("Przerwano");
 	}
 	
 	
-	private void sysloRun_click(Object sender, EventArgs ea) {
-		if (processing) delete processing;
-		processing = new Thread(&(this.thRunSyslo));
-		processing.start();
-	}
-	
-	
-	private void sysloStop_click(Object sender, EventArgs ea) {
-		if (processing) {
-			//processing.pause();
-			delete processing;
-			processing = null;
+	private void dataMenuVertexEnter_click(Object sender, EventArgs ea) {
+		/+RandomPoset dialog = new RandomPoset();
+		dialog.showDialog();
+		if ((dialog.dialogResult == DialogResult.OK) && (dialog.numberBox.lines.length > 0)) {
+			n = toUint(dialog.numberBox.lines[0]);
+			if (processing) delete processing;
+			processing = new Thread(&(this.thVertexRandomPoset));
+			processing.start();
+		}+/
+		char[][] lines;
+		char[] line;
+		uint[][] inlist, outlist;
+		
+		EnterVert dialog;
+		
+		if (aP !is null) {
+			inlist = aP.getInlist();
+			outlist = aP.getOutlist();
+			lines.length = 2 * inlist.length + 1;
+			lines[0] = std.string.toString(inlist.length);
+			for (uint i = 0; i < inlist.length; i++) {
+				for (uint j = 0; j < inlist[i].length; j++) {
+					line ~= std.string.toString(inlist[i][j]) ~ (j < inlist[i].length - 1 ? " " : "");
+				}
+				lines[2*i+1] = line.dup;
+				line.length = 0;
+				for (uint j = 0; j < outlist[i].length; j++) {
+					line ~= std.string.toString(outlist[i][j]) ~ (j < outlist[i].length - 1 ? " " : "");
+				}
+				lines[2*i+2] = line.dup;
+				line.length = 0;
+			}
+			writefln(lines);
+			dialog = new EnterVert(lines);
+		} else {
+			dialog = new EnterVert();
 		}
-		menu.menuItems[0].menuItems[0].enabled(true);
-		menu.menuItems[1].menuItems[0].enabled(true);
-		menu.menuItems[1].menuItems[1].enabled(true);
-		parameterBox.text = "";
-		parameterBox.enabled(true);
-		runButton.enabled(true);
-		statusBar.text("Przerwano");
+		dialog.showDialog();
+		
+		dialog.dispose();
+		delete dialog;
 	}
 	
 	
-	private void fileExitMenu_click(Object sender, EventArgs ea) {
-		Application.exit();
+	private void dataMenuArcEnter_click(Object sender, EventArgs ea) {
+		RandomArcPoset dialog = new RandomArcPoset();
+		dialog.showDialog();
+		if ((dialog.dialogResult == DialogResult.OK) && 
+				(dialog.posetArcNumBox.lines.length > 0) &&
+				(dialog.dummyArcNumBox.lines.length > 0)) {
+			n = toUint(dialog.posetArcNumBox.lines[0]);
+			s = toUint(dialog.dummyArcNumBox.lines[0]);
+			if (processing) delete processing;
+			processing = new Thread(&(this.thArcRandomPoset));
+			processing.start();
+		}
+		dialog.dispose();
+		delete dialog;
 	}
 	
 	
@@ -535,10 +707,39 @@ class MainWindow: dfl.form.Form
 	}
 	
 	
-	private void dataMenuArcView_click(Object sender, EventArgs ea) {
-		if (!(this.aP)) return;
+	private void viewMenuArcView_click(Object sender, EventArgs ea) {
+		this.arcView = true;
+		this.menu.menuItems[1].menuItems[0].enabled(false);
+		this.menu.menuItems[1].menuItems[1].enabled(true);
+		if (this.aP is null) return;
 		if (processing) delete processing;
-		panel1.drawArcDiagram(aP);
+		panel1.drawArcDiagram(aP, this.result);
+	}
+	
+	
+	private void viewMenuVertView_click(Object sender, EventArgs ea) {
+		this.arcView = false;
+		this.menu.menuItems[1].menuItems[0].enabled(true);
+		this.menu.menuItems[1].menuItems[1].enabled(false);
+		if (this.aP is null) return;
+		if (processing) delete processing;
+		PosetPainter painter = new PosetPainter(P);
+		uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+		panel1.drawDiagram(P, pos, this.result);
+	}
+	
+	
+	private void viewMenuClearResult_click(Object sender, EventArgs ea) {
+		this.result.length = 0;
+		if (this.aP is null) return;
+		if (processing) delete processing;
+		if (this.arcView) {
+			panel1.drawArcDiagram(aP);
+		} else {
+			PosetPainter painter = new PosetPainter(P);
+			uint[2][] pos = painter.getGrid(30, 50, panel1.right, panel1.bottom);
+			panel1.drawDiagram(P, pos, this.result);
+		}
 	}
 	
 	

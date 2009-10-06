@@ -351,6 +351,37 @@ class Poset {
 	}
 	
 	
+	/**
+	 * Zapisuje definicję posetu w pliku tekstowym w ustalonym formacie
+	 */
+	int toFile(char[] filename) {
+		File file = new File();
+		try {
+			file.open(filename, FileMode.OutNew);
+		}
+		catch (Exception ex) {
+			return -1;
+		}
+		file.writeLine(std.string.toString(inlist.length));
+		char[] line;
+		for (uint i = 0; i < inlist.length; i++) {
+			for (uint j = 0; j < inlist[i].length; j++) {
+				line ~= std.string.toString(inlist[i][j]) ~ (j < inlist[i].length - 1 ? " " : "");
+			}
+			file.writeLine(line);
+			line.length = 0;
+			for (uint j = 0; j < outlist[i].length; j++) {
+				line ~= std.string.toString(outlist[i][j]) ~ (j < outlist[i].length - 1 ? " " : "");
+			}
+			file.writeLine(line);
+			line.length = 0;
+		}
+		file.flush();
+		file.close();
+		return 0;
+	}
+	
+	
 	static synchronized Poset randomPoset(uint n = 0) {
 		while (n == 0) n = rand() % int.max;
 		Poset P = new Poset();
