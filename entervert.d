@@ -20,7 +20,7 @@ class EnterVert: dfl.form.Form
 	//~Entice Designer variables end here.
 	
 	
-	this(char[][] lines = [])
+	this(char[][] lines = [], char[] hint = "")
 	{
 		initializeEnterVert(lines);
 		
@@ -29,7 +29,7 @@ class EnterVert: dfl.form.Form
 	}
 	
 	
-	private void initializeEnterVert(char[][] lines = [])
+	private void initializeEnterVert(char[][] lines = [], char[] hint = "")
 	{
 		// Do not manually modify this function.
 		//~Entice Designer 0.8.5.02 code begins here.
@@ -39,8 +39,11 @@ class EnterVert: dfl.form.Form
 		//~DFL dfl.label.Label=label1
 		label1 = new dfl.label.Label();
 		label1.name = "label1";
-		label1.text = "n {liczba elementow}"~newline~"{elementy pokrywane przez 0}"~newline~"{elementy pokrywajace 0}"~newline~"{elementy pokrywane przez 1}"~
+		if (hint.length == 0) {
+			hint = "n {liczba elementow}"~newline~"{elementy pokrywane przez 0}"~newline~"{elementy pokrywajace 0}"~newline~"{elementy pokrywane przez 1}"~
 					newline~"."~newline~"."~newline~"."~newline~"{elementy pokrywane przez n-1}"~newline~"{elementy pokrywajace n-1}"~newline~newline~newline~"Elementy w listach oddzielane spacjami.";
+		}
+		label1.text = hint;
 		label1.bounds = dfl.all.Rect(256, 8, 240, 184);
 		label1.parent = this;
 		//~DFL dfl.button.Button=button1
