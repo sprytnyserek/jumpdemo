@@ -297,15 +297,39 @@ class Preview: dfl.panel.Panel
 			start = Point(start.x + space, start.y);
 		}
 		Color black = Color.fromArgb(0, 0, 0, 0);
-		Pen blackSolidPen = new Pen(black, PenStyle.DOT);
+		//Pen blackSolidPen = new Pen(black, PenStyle.DOT);
 		Pen blackDashPen = new Pen(black);
+		Color[] grpColors;
+		grpColors.length = chains.length;
+		for (uint i = 0; i < grpColors.length; i++) grpColors[i] = Color.fromArgb(0, rand() % 256, rand() % 256, rand() % 256);
+		Pen[] grpPens;
+		grpPens.length = chains.length;
+		for (uint i = 0; i < grpPens.length; i++) grpPens[i] = new Pen(grpColors[i], PenStyle.DOT);
+		Pen[] elmtPens;
+		elmtPens.length = n;
+		for (uint i = 0; i < chains.length; i++) {
+			foreach (uint j; chains[i]) {
+				elmtPens[j] = grpPens[i];
+			}
+		}
+		for (uint i = 0; i < elmtPens.length; i++) {
+			if (elmtPens[i] is null) {
+				elmtPens[i] = new Pen(black, PenStyle.DOT);
+			}
+		}
 		Point A, B, C, D;
 		foreach (uint arc; tiers.keys) {
 			A = vertPoints[tail[arc]];
 			D = vertPoints[head[arc]];
 			B = Point(A.x + tierHeight, A.y - (tierHeight * tiers[arc]));
 			C = Point(D.x - tierHeight, D.y - (tierHeight * tiers[arc]));
-			drawBezierArrow(g, A, B, C, D, arc >= n ? blackDashPen : blackSolidPen);
+			drawBezierArrow(g, A, B, C, D, arc >= n ? blackDashPen : elmtPens[arc]);
+			//g.fillRectangle(Color.fromArgb(0, 0, 0, 0), center.x - 4, center.y - 4, 8, 8);
+			//g.drawLine(blackDashPen, B, C);
+			//g.drawEllipse(blackDashPen, A.x - 3, A.y - 3, 6, 6);
+			//g.drawEllipse(blackDashPen, D.x - 3, D.y - 3, 6, 6);
+			g.fillRectangle(Color.fromArgb(0, 0, 0, 0), A.x - 3, A.y - 3, 6, 6);
+			g.fillRectangle(Color.fromArgb(0, 0, 0, 0), D.x - 3, D.y - 3, 6, 6);
 		}
 		g.flush();
 		Bitmap b = g.toBitmap();
@@ -325,7 +349,11 @@ class Preview: dfl.panel.Panel
 	
 	private void drawBezierArrow(Graphics g, Point A, Point B, Point C, Point D, Pen pen) {
 		if (g is null || pen is null) return;
+		Point c = Point(cast(uint)(cast(double)(A.x) / 8.0 + 3.0 * cast(double)(B.x) / 8.0 + 3.0 * cast(double)(C.x) / 8.0 + cast(double)(D.x) / 8.0), 
+					cast(uint)(cast(double)(A.y) / 8.0 + 3.0 * cast(double)(B.y) / 8.0 + 3.0 * cast(double)(C.y) / 8.0 + cast(double)(D.y) / 8.0));
 		g.drawBezier(pen, A, B, C, D);
+		g.drawLine(pen, c.x - 5, c.y - 3, c.x + 5, c.y);
+		g.drawLine(pen, c.x - 5, c.y + 3, c.x + 5, c.y);
 		return;
 	}
 	
