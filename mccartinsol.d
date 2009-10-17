@@ -260,6 +260,7 @@ private uint[][] ladderDecomp(Poset Q, bool[] usedElmts = []) {
  * górnym dla liczby skoków
  */
 private uint[][] expEvaluate(TreeElmt node, uint k) {
+	//debug writefln("begin k == ", k);
 	uint[][] result;
 	/* 1. find maximally accessible elements in node poset*/
 	uint[] maxAccess = node.P.maxAccessible();
@@ -275,9 +276,12 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 	 *(b) if exactly k + 1, then check whether node poset has a ladder decomposition; if so then return ladder chains
 	 *(c) if less than k + 1, then create a child node for each od them; then run recursive calls on each of them
 	 */
-	if (maxAccess.length > k + 1) return [];
+	if (maxAccess.length > k + 1) {
+		//debug writefln("Returning [] because maxAccess.length > k + 1");
+		return [];
+	}
 	if (maxAccess.length == k + 1) { // find the ladder decomposition
-		//debug writef("ladder decomp...");
+		//debug writefln("ladder decomp...");
 		result = ladderDecomp(node.P, node.gottenElmts);
 		// sprawdzenie, czy wynik rozkladu drabinowego ma oczekiwana dlugosc
 		/+debug if (result.length == 0) {
@@ -285,7 +289,12 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 		} else {
 			writefln("solution length: ", result.length - 1);
 		}+/
-		if ((result.length > 0) && (result.length <= k + 1)) result = [node.chain] ~ result; else result.length = 0;
+		//if (result.length == 0) debug writefln("result.length == 0 !!!!!");
+		//if (result.length > k + 1) debug writefln("result.length > 0 !!!!!");
+		//debug writefln("after ladder decomp: ", result);
+		//debug writefln("k == ", k);
+		//if ((result.length > 0) && (result.length <= k + 1)) result = [node.chain] ~ result; else result.length = 0;
+		if (result.length > k + 1) result.length = 0;
 	}
 	else {
 		//debug writefln("branching into ", maxAccess.length, " subtrees...");
@@ -341,6 +350,7 @@ private uint[][] expEvaluate(TreeElmt node, uint k) {
 			else { // TEORETYCZNIE POPRAWIONE -- CO, JESLI k == 0 ??? NI MA ROZWIAZANIA Z DANYM OGRANICZENIEM
 				if (k > 0) {
 					branchResult = [chain] ~ expEvaluate(node.children[length - 1], k - 1);
+					//debug writefln("branchResult: ", branchResult);
 					if (branchResult.length == 1) branchResult.length = 0;
 				}
 				else branchResult.length = 0;
@@ -381,6 +391,7 @@ uint[][] linearExtensionByDecomp(Poset P, uint k = uint.max) {
 	bool[] gottenElmts;
 	uint[][] result;
 	TreeElmt topNode = new TreeElmt(P, []);
+	debug writefln("Uruchomiono algorytm McCartin...");
 	result = expEvaluate(topNode, k);
 	uint i = 0;
 	while (i < result.length) {

@@ -153,12 +153,16 @@ class MainWindow: dfl.form.Form
 		statusBar.text("Zakończono");
 		char[] reportText;
 		reportText = "czas wykonania (McCartin): " ~ std.string.toString(cast(double)(finish - start) / cast(double)(CLOCKS_PER_SEC) * 1000.0) ~ " ms" ~ newline;
-		reportText ~= "wartość wyniku: " ~ std.string.toString(this.result.length - 1) ~ " skoków" ~ newline ~ newline;
-		reportText ~= "rozszerzenie liniowe w postaci sumy łańcuchów" ~ newline ~ "---" ~ newline;
-		for (uint i = 0; i < this.result.length; i++) {
-			for (uint j = 0; j < this.result[i].length; j++) {
-				reportText ~= std.string.toString(this.result[i][j]) ~ (j < this.result[i].length - 1 ? " " : newline);
+		if (this.result.length > 0) {
+			reportText ~= "wartość wyniku: " ~ std.string.toString(this.result.length - 1) ~ " skoków" ~ newline ~ newline;
+			reportText ~= "rozszerzenie liniowe w postaci sumy łańcuchów" ~ newline ~ "---" ~ newline;
+			for (uint i = 0; i < this.result.length; i++) {
+				for (uint j = 0; j < this.result[i].length; j++) {
+					reportText ~= std.string.toString(this.result[i][j]) ~ (j < this.result[i].length - 1 ? " " : newline);
+				}
 			}
+		} else {
+			reportText ~= "nie znaleziono rozwiązania" ~ newline;
 		}
 		this.reportWindow.textBox3.text(reportText);
 		//this.reportWindow.textBox3.text();
