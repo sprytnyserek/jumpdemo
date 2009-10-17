@@ -1358,8 +1358,9 @@ uint[][] arcOptLineExt(ArcPoset P) {
 	uint[][] result;
 	ArcPoset D = new ArcPoset();
 	D.setTailHead(P.getTail(), P.getHead(), P.getN());
+        debug writefln("Uruchomiono algorytm Sysly...");
 	optLineExt(D, result);
-	debug writefln("wynik wg Sysly: ", result);
-	debug writefln(result.length - 1, " skokow");
+        debug writefln("wynik wg Sysly: ", result);
+        debug writefln(result.length - 1, " skokow");
 	return result;
 }

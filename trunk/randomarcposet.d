@@ -210,8 +210,8 @@ class RandomArcPoset: dfl.form.Form
 		//~DFL dfl.label.Label=label4
 		label4 = new dfl.label.Label();
 		label4.name = "label4";
-		label4.text = "Liczba łuków pozornych";
-		label4.bounds = dfl.all.Rect(16, 64, 120, 16);
+		label4.text = "Maksymalna liczba łuków pozornych";
+		label4.bounds = dfl.all.Rect(16, 64, 184, 16);
 		label4.parent = this;
 		//~Entice Designer 0.8.5.02 code ends here.
 	}
